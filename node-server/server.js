@@ -5,7 +5,6 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var admin = require("firebase-admin");
 
-var serviceAccount = require("private.json");
 var firebaseCredential = require(__dirname + '/private/serviceCredentials.json')
 
 admin.initializeApp({
