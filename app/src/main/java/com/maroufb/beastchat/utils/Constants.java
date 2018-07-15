@@ -1,4 +1,4 @@
-package com.maroufb.beastchat;
+package com.maroufb.beastchat.utils;
 
 public class Constants {
 
