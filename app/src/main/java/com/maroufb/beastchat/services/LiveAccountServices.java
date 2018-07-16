@@ -13,8 +13,8 @@ import java.util.List;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import io.socket.client.Socket;
 
@@ -81,9 +81,9 @@ public class LiveAccountServices {
                         }
 
                     }
-                }).observeOn(AndroidSchedulers.mainThread()).subscribe(new Consumer<Integer>() {
+                }).observeOn(AndroidSchedulers.mainThread()).subscribeWith(new DisposableObserver<Integer>(){
                     @Override
-                    public void accept(Integer integer) throws Exception {
+                    public void onNext(Integer integer) {
                         switch (integer.intValue()) {
                             case USER_ERROR_EMPTY_EMAIL:
                                 userEmailEt.setError("Email Address Can't Be Empty.");
@@ -101,6 +101,16 @@ public class LiveAccountServices {
                                 userNameEt.setError("Username can't be empty");
                                 break;
                         }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
                     }
                 });
 
