@@ -6,13 +6,11 @@ import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.reactivestreams.Subscription;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -43,7 +41,7 @@ public class LiveAccountServices {
     public Disposable sendRegistrationInfo(final EditText userNameEt, final EditText userEmailEt,
                                              final EditText userPasswordEt, final Socket socket){
         List<String> userDetails = new ArrayList<>();
-        userDetails.add(userEmailEt.getText().toString());
+        userDetails.add(userNameEt.getText().toString());
         userDetails.add(userEmailEt.getText().toString());
         userDetails.add(userPasswordEt.getText().toString());
 
@@ -62,12 +60,13 @@ public class LiveAccountServices {
                             return USER_ERROR_EMPTY_USERNAME;
                         if (userEmail.isEmpty())
                             return USER_ERROR_EMPTY_EMAIL;
+                        if(!isEmailValid(userEmail))
+                            return  USER_ERROR_EMAIL_BAD_FORMAT;
                         if(userPassword.isEmpty())
                             return USER_ERROR_EMPTY_PASSWORD;
                         if(userPassword.length() < 6)
                             return  USER_ERROR_PASSWORD_SHORT;
-                        if(!isEmailValid(userEmail))
-                            return  USER_ERROR_EMAIL_BAD_FORMAT;
+
                         JSONObject sendData = new JSONObject();
                         try {
                             sendData.put("email",userEmail);

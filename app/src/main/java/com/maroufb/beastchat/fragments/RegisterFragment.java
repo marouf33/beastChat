@@ -7,11 +7,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.maroufb.beastchat.R;
+import com.maroufb.beastchat.services.LiveAccountServices;
 import com.maroufb.beastchat.utils.Constants;
 
 import java.net.URISyntaxException;
@@ -35,6 +35,8 @@ public class RegisterFragment extends BaseFragment {
 
     private Socket mSocket;
 
+    private LiveAccountServices mLiveAccountServices;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +48,7 @@ public class RegisterFragment extends BaseFragment {
         }
 
         mSocket.connect();
+        mLiveAccountServices = LiveAccountServices.getInstance();
     }
 
     public static RegisterFragment newInstance(){
@@ -75,5 +78,12 @@ public class RegisterFragment extends BaseFragment {
     @OnClick(R.id.fragment_register_loginButton)
     public void setLoginButton(){
         getActivity().finish();
+    }
+
+    @OnClick(R.id.fragment_register_registerButton)
+    public void setRegisterButton(){
+        mCompositeDisposable.add(mLiveAccountServices.sendRegistrationInfo(
+                mUsernameEt,mUserEmailEt,mUserPasswordEt,mSocket
+        ));
     }
 }
