@@ -1,5 +1,6 @@
 package com.maroufb.beastchat.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,8 +12,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.maroufb.beastchat.R;
+import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.services.LiveAccountServices;
 import com.maroufb.beastchat.utils.Constants;
+
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 
@@ -22,6 +26,7 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
 public class RegisterFragment extends BaseFragment {
 
@@ -37,6 +42,8 @@ public class RegisterFragment extends BaseFragment {
 
     private LiveAccountServices mLiveAccountServices;
 
+    private BaseFragmentActivity mActivity;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +55,7 @@ public class RegisterFragment extends BaseFragment {
         }
 
         mSocket.connect();
+        mSocket.on("message",accountResponse());
         mLiveAccountServices = LiveAccountServices.getInstance();
     }
 
@@ -70,6 +78,18 @@ public class RegisterFragment extends BaseFragment {
     }
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (BaseFragmentActivity) context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mActivity = null;
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         mSocket.disconnect();
@@ -85,5 +105,15 @@ public class RegisterFragment extends BaseFragment {
         mCompositeDisposable.add(mLiveAccountServices.sendRegistrationInfo(
                 mUsernameEt,mUserEmailEt,mUserPasswordEt,mSocket
         ));
+    }
+
+    private Emitter.Listener accountResponse(){
+        return new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject data = (JSONObject) args[0];
+                mCompositeDisposable.add(mLiveAccountServices.registerResponse(data,mActivity));
+            }
+        };
     }
 }

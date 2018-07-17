@@ -3,6 +3,9 @@ package com.maroufb.beastchat.services;
 import android.util.Log;
 import android.util.Patterns;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import com.maroufb.beastchat.activities.BaseFragmentActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -103,20 +106,48 @@ public class LiveAccountServices {
                         }
                     }
 
-                    @Override
-                    public void onError(Throwable e) {
+                    @Override public void onError(Throwable e) {}
 
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
+                    @Override public void onComplete() {}
                 });
 
     }
 
     private boolean isEmailValid(CharSequence email){
         return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    public Disposable registerResponse(JSONObject data, final BaseFragmentActivity activity){
+        Observable<JSONObject> jsonObjectObservable = Observable.just(data);
+        return jsonObjectObservable
+                .subscribeOn(Schedulers.io())
+                .map(new Function<JSONObject, String>() {
+                    @Override
+                    public String apply(JSONObject jsonObject) throws Exception {
+                        String message;
+
+                        try {
+                            JSONObject json = jsonObject.getJSONObject("message");
+                            message = (String) json.get("text");
+                            return message;
+                        }catch (JSONException e){
+                            return e.getMessage();
+                        }
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<String>() {
+                    @Override public void onNext(String stringResponse) {
+                        if(stringResponse.equals("Success")){
+                            activity.finish();
+                            Toast.makeText(activity,"Registration Successful!", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(activity,stringResponse, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override public void onError(Throwable e) {}
+
+                    @Override public void onComplete() {}
+                });
     }
 }
