@@ -10,8 +10,56 @@ var userAccountRequests = (io) =>{
     console.log(`Client ${socket.id} is connected!`);
     detectDisconnection(socket,io);
     registerUser(socket,io);
+    logUserIn(socket,io);
   });
 };
+
+
+function logUserIn(socket,io){
+  socket.on('userInfo',(data)=>{
+    admin.auth.getUserByEmail(data.email)
+    .then((userRecord)=>{
+      var db= admin.database();
+      var ref = db.ref('users');
+      var userRef = ref.child(encodeEmail(data.email));
+      userRef.once('value',(snapshot)=>{
+          var additionalClaims = {
+            email:data.email
+          };
+          admin.auth().createCustomToken(userRecord.uidInternal,additionalClaims)
+          .then((customToken) =>{
+
+            Object.keys(io.sockets.sockets).forEach((id)=>{
+              console.log(error.message);
+              if(id = socket.id){
+                var token = {
+                  authToken:customToken,
+                  email:data.email,
+                  photo:snapshot.val().userPicture,
+                  displayName:snapshot.val().userName
+                }
+                io.to(id).emit('token',{token});
+              }
+            });
+
+          }).catch((error)=>{
+            Object.keys(io.sockets.sockets).forEach((id)=>{
+              console.log(error.message);
+              if(id = socket.id){
+                var token = {
+                  authToken:error.message,
+                  email:'error',
+                  photo:'error',
+                  displayName:'error'
+                }
+                io.to(id).emit('token',{token});
+              }
+            });
+          });
+      });
+    });
+  });
+}
 
 
 function registerUser(socket,io){
