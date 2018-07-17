@@ -17,8 +17,12 @@ io.on('connection', (socket)=>{
 
   socket.on('disconnect',()=>{
     console.log('A client has disconnected.');
-  })
+  });
 });
+
+var accountRequests = require('./firebase/account-services');
+
+accountRequests.userAccountRequests(io);
 
 http.listen(4000,()=>{
   console.log('Server is listening on port 4000');
