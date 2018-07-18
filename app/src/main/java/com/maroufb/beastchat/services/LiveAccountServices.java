@@ -1,10 +1,16 @@
 package com.maroufb.beastchat.services;
 
+import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Patterns;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 
 import org.json.JSONException;
@@ -34,11 +40,144 @@ public class LiveAccountServices {
     private final int SERVER_SUCCESS = 6;
     private final int SERVER_FAILURE = 7;
 
+    private final int USER_NO_ERRORS = 8;
+
     public static LiveAccountServices getInstance(){
         if(mLiveAccountServices == null){
             mLiveAccountServices = new LiveAccountServices();
         }
         return mLiveAccountServices;
+    }
+
+    public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, SharedPreferences sharedPreferences){
+        
+        Observable<JSONObject> jsonObjectObservable = Observable.just(data);
+        
+        return jsonObjectObservable
+                .subscribeOn(Schedulers.io())
+                .map(new Function<JSONObject, List<String>>() {
+                    @Override
+                    public List<String> apply(JSONObject jsonObject) throws Exception {
+                        List<String>  userDetails = new ArrayList<>();
+                        JSONObject serverData = jsonObject.getJSONObject("token");
+                        String token = (String) serverData.get("authToken");
+                        String email = (String) serverData.get("email");
+                        String photo = (String) serverData.get("photo");
+                        String userName = (String) serverData.get("displayName");
+
+                        userDetails.add(token);
+                        userDetails.add(email);
+                        userDetails.add(photo);
+                        userDetails.add(userName);
+                        return userDetails;
+
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<List<String>>(){
+                    @Override
+                    public void onNext(List<String> strings) {
+                        String token = strings.get(0);
+                        String email = strings.get(1);
+                        String photo = strings.get(2);
+                        String userName = strings.get(3);
+
+                        if(!email.equals("error")){
+                            FirebaseAuth.getInstance().signInWithCustomToken(token).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if(!task.isSuccessful()) {
+                                        Toast.makeText(activity, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                    }else{
+
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    public Disposable sendLogingInfo(final EditText userEmailEt, final EditText userPasswordEt, Socket socket
+            , final BaseFragmentActivity activity ){
+        List<String> userDetails = new ArrayList<>();
+        userDetails.add(userEmailEt.getText().toString());
+        userDetails.add(userPasswordEt.getText().toString());
+
+        Observable<List<String>> userDetailObservable = Observable.just(userDetails);
+        return userDetailObservable
+                .subscribeOn(Schedulers.io())
+                .map(new Function<List<String>, Integer>() {
+                    @Override
+                    public Integer apply(List<String> strings) throws Exception {
+                        final String userEmail = strings.get(0);
+                        String userPassword = strings.get(1);
+
+                        if (userEmail.isEmpty())
+                            return USER_ERROR_EMPTY_EMAIL;
+                        if(!isEmailValid(userEmail))
+                            return  USER_ERROR_EMAIL_BAD_FORMAT;
+                        if(userPassword.isEmpty())
+                            return USER_ERROR_EMPTY_PASSWORD;
+                        if(userPassword.length() < 6)
+                            return  USER_ERROR_PASSWORD_SHORT;
+
+                        FirebaseAuth.getInstance().signInWithEmailAndPassword(userEmail,userPassword)
+                                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<AuthResult> task) {
+                                        if(!task.isSuccessful()){
+                                            Toast.makeText(activity,task.getException().getMessage(),Toast.LENGTH_SHORT).show();
+                                        }else{
+                                            JSONObject sendData = new JSONObject();
+                                            try {
+                                                sendData.put("email",userEmail);
+                                            }catch (JSONException e){
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }
+                                });
+
+                        FirebaseAuth.getInstance().signOut();
+
+                        return USER_NO_ERRORS;
+
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>(){
+                    @Override
+                    public void onNext(Integer integer) {
+                        switch (integer.intValue()) {
+                            case USER_ERROR_EMPTY_EMAIL:
+                                userEmailEt.setError("Email Address Can't Be Empty.");
+                                break;
+                            case USER_ERROR_EMAIL_BAD_FORMAT:
+                                userEmailEt.setError("Please check your email format.");
+                                break;
+                            case USER_ERROR_EMPTY_PASSWORD:
+                                userPasswordEt.setError("Password Can't be blank.");
+                                break;
+                            case USER_ERROR_PASSWORD_SHORT:
+                                userPasswordEt.setError("Password must at least 6 characters long.");
+                                break;
+                        }
+                    }
+
+                    @Override public void onError(Throwable e) {}
+
+                    @Override public void onComplete() {}
+                });
+
     }
 
     public Disposable sendRegistrationInfo(final EditText userNameEt, final EditText userEmailEt,
