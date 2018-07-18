@@ -1,5 +1,6 @@
 package com.maroufb.beastchat.services;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -12,6 +13,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
+import com.maroufb.beastchat.activities.InboxActivity;
+import com.maroufb.beastchat.utils.Constants;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,7 +52,7 @@ public class LiveAccountServices {
         return mLiveAccountServices;
     }
 
-    public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, SharedPreferences sharedPreferences){
+    public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, final SharedPreferences sharedPreferences){
         
         Observable<JSONObject> jsonObjectObservable = Observable.just(data);
         
@@ -77,9 +80,9 @@ public class LiveAccountServices {
                     @Override
                     public void onNext(List<String> strings) {
                         String token = strings.get(0);
-                        String email = strings.get(1);
-                        String photo = strings.get(2);
-                        String userName = strings.get(3);
+                        final String email = strings.get(1);
+                        final String photo = strings.get(2);
+                        final String userName = strings.get(3);
 
                         if(!email.equals("error")){
                             FirebaseAuth.getInstance().signInWithCustomToken(token).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -88,7 +91,14 @@ public class LiveAccountServices {
                                     if(!task.isSuccessful()) {
                                         Toast.makeText(activity, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     }else{
+                                        sharedPreferences.edit().putString(Constants.USER_EMAIL,email).apply();
+                                        sharedPreferences.edit().putString(Constants.USER_NAME,userName).apply();
+                                        sharedPreferences.edit().putString(Constants.USER_PICTURE,photo).apply();
 
+                                        Intent intent = new Intent(activity, InboxActivity.class);
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        activity.startActivity(intent);
+                                        activity.finish();
                                     }
                                 }
                             });
@@ -107,7 +117,7 @@ public class LiveAccountServices {
                 });
     }
 
-    public Disposable sendLogingInfo(final EditText userEmailEt, final EditText userPasswordEt, Socket socket
+    public Disposable sendLogingInfo(final EditText userEmailEt, final EditText userPasswordEt, final Socket socket
             , final BaseFragmentActivity activity ){
         List<String> userDetails = new ArrayList<>();
         userDetails.add(userEmailEt.getText().toString());
@@ -141,6 +151,7 @@ public class LiveAccountServices {
                                             JSONObject sendData = new JSONObject();
                                             try {
                                                 sendData.put("email",userEmail);
+                                                socket.emit("userInfo",sendData);
                                             }catch (JSONException e){
                                                 e.printStackTrace();
                                             }

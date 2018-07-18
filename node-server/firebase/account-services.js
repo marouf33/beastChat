@@ -17,7 +17,7 @@ var userAccountRequests = (io) =>{
 
 function logUserIn(socket,io){
   socket.on('userInfo',(data)=>{
-    admin.auth.getUserByEmail(data.email)
+    admin.auth().getUserByEmail(data.email)
     .then((userRecord)=>{
       var db= admin.database();
       var ref = db.ref('users');
@@ -26,11 +26,10 @@ function logUserIn(socket,io){
           var additionalClaims = {
             email:data.email
           };
-          admin.auth().createCustomToken(userRecord.uidInternal,additionalClaims)
+          admin.auth().createCustomToken(userRecord.uid,additionalClaims)
           .then((customToken) =>{
 
             Object.keys(io.sockets.sockets).forEach((id)=>{
-              console.log(error.message);
               if(id = socket.id){
                 var token = {
                   authToken:customToken,
