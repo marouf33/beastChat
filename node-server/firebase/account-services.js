@@ -23,39 +23,76 @@ function logUserIn(socket,io){
       var ref = db.ref('users');
       var userRef = ref.child(encodeEmail(data.email));
       userRef.once('value',(snapshot)=>{
-          var additionalClaims = {
-            email:data.email
-          };
-          admin.auth().createCustomToken(userRecord.uid,additionalClaims)
-          .then((customToken) =>{
+            var additionalClaims = {
+              email:data.email
+            };
+            
+            if(!snapshot && data.name){
+              var date = {
+                data:admin.database.ServerValue.TIMESTAMP
+              };
+      
+              userRef.set({
+                email:data.email,
+                userName:data.name,
+                userPicture:'https://dl.dropboxusercontent.com/s/sdmw0p5avpvh41g/635319915.jpg?dl=0',
+                dateJoined:date,
+                hasLoggedIn:false
+              });
+              
+            }
+            admin.auth().createCustomToken(userRecord.uid,additionalClaims)
+            .then((customToken) =>{
 
-            Object.keys(io.sockets.sockets).forEach((id)=>{
-              if(id = socket.id){
-                var token = {
-                  authToken:customToken,
-                  email:data.email,
-                  photo:snapshot.val().userPicture,
-                  displayName:snapshot.val().userName
-                }
-                io.to(id).emit('token',{token});
-              }
-            });
+              Object.keys(io.sockets.sockets).forEach((id)=>{
+                if(id = socket.id){
+                  var token ;
+                  var userName;
+                  var userPic;
+                  if(!snapshot.val() && data.name){
+                    userName = data.name;
+                    userPic = 'https://dl.dropboxusercontent.com/s/sdmw0p5avpvh41g/635319915.jpg?dl=0';
+                    var date = {
+                      data:admin.database.ServerValue.TIMESTAMP
+                    };
+                    userRef.set({
+                      email:data.email,
+                      userName:data.name,
+                      userPicture:userPic,
+                      dateJoined:date,
+                      hasLoggedIn:false
+                    });
+                  }else{
+                    userName = snapshot.val().userName
+                    userPic = snapshot.val().userPicture;
+                  }
 
-          }).catch((error)=>{
-            Object.keys(io.sockets.sockets).forEach((id)=>{
-              console.log(error.message);
-              if(id = socket.id){
-                var token = {
-                  authToken:error.message,
-                  email:'error',
-                  photo:'error',
-                  displayName:'error'
+                  token = {
+                    authToken:customToken,
+                    email:data.email,
+                    photo:userPic,
+                    displayName:userName
+                  };
+                  io.to(id).emit('token',{token});
                 }
-                io.to(id).emit('token',{token});
-              }
+              });
+
+            }).catch((error)=>{
+              Object.keys(io.sockets.sockets).forEach((id)=>{
+                console.log(error.message);
+                if(id = socket.id){
+                  var token = {
+                    authToken:error.message,
+                    email:'error',
+                    photo:'error',
+                    displayName:'error'
+                  }
+                  io.to(id).emit('token',{token});
+                }
+              });
             });
-          });
-      });
+        });
+      
     });
   });
 }
@@ -116,9 +153,16 @@ function detectDisconnection(socket,io){
   });
 }
 
+function escapeRegExp(str) {
+  return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+}
+
+function replaceAll(str, find, replace) {
+  return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+}
 
 function encodeEmail(email){
-  return email.replace('.',',');
+  return replaceAll(email,'.',',');
 }
 module.exports = {
   userAccountRequests

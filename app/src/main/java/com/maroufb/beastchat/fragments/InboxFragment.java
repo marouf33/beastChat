@@ -20,4 +20,7 @@ public class InboxFragment extends BaseFragment {
         View rootView = inflater.inflate(R.layout.fragment_inbox,container,false);
         return  rootView;
     }
+
+
+
 }

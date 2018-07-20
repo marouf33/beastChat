@@ -55,7 +55,7 @@ public abstract class BaseFragmentActivity extends AppCompatActivity{
         if(fragment == null){
             fragment = createFragment();
             fragmentManager.beginTransaction()
-                    .add(R.id.activity_fragment_base_fragmentContainer,fragment)
+                    .add(R.id.activity_fragment_base_fragmentContainer,fragment,this.getClass().getSimpleName())
                     .commit();
         }
     }

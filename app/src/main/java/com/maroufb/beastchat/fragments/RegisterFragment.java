@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.maroufb.beastchat.R;
@@ -35,6 +36,8 @@ public class RegisterFragment extends BaseFragment {
     @BindView(R.id.fragment_register_userEmail) EditText mUserEmailEt;
 
     @BindView(R.id.fragment_register_userPassword) EditText mUserPasswordEt;
+
+    @BindView(R.id.register_progressBar) ProgressBar mProgressBar;
 
     private Unbinder mUnbinder;
 
@@ -68,6 +71,7 @@ public class RegisterFragment extends BaseFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_register,container,false);
         mUnbinder = ButterKnife.bind(this,rootView);
+        mProgressBar.setVisibility(View.GONE);
         return rootView;
     }
 
@@ -103,7 +107,7 @@ public class RegisterFragment extends BaseFragment {
     @OnClick(R.id.fragment_register_registerButton)
     public void setRegisterButton(){
         mCompositeDisposable.add(mLiveAccountServices.sendRegistrationInfo(
-                mUsernameEt,mUserEmailEt,mUserPasswordEt,mSocket
+                mUsernameEt,mUserEmailEt,mUserPasswordEt,mSocket,mProgressBar
         ));
     }
 

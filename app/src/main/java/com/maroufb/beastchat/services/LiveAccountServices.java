@@ -5,12 +5,17 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.activities.InboxActivity;
@@ -23,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
@@ -52,7 +58,7 @@ public class LiveAccountServices {
         return mLiveAccountServices;
     }
 
-    public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, final SharedPreferences sharedPreferences){
+    public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, final SharedPreferences sharedPreferences,final ProgressBar progressBar){
         
         Observable<JSONObject> jsonObjectObservable = Observable.just(data);
         
@@ -91,6 +97,9 @@ public class LiveAccountServices {
                                     if(!task.isSuccessful()) {
                                         Toast.makeText(activity, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     }else{
+                                        if(progressBar != null){
+                                            progressBar.setVisibility(View.GONE);
+                                        }
                                         sharedPreferences.edit().putString(Constants.USER_EMAIL,email).apply();
                                         sharedPreferences.edit().putString(Constants.USER_NAME,userName).apply();
                                         sharedPreferences.edit().putString(Constants.USER_PICTURE,photo).apply();
@@ -102,23 +111,75 @@ public class LiveAccountServices {
                                     }
                                 }
                             });
+                        }else if(progressBar != null){
+                            progressBar.setVisibility(View.GONE);
                         }
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
+                        if(progressBar != null){
+                            progressBar.setVisibility(View.GONE);
+                        }
                     }
 
                     @Override
                     public void onComplete() {
-
+                        if(progressBar != null){
+                            progressBar.setVisibility(View.GONE);
+                        }
                     }
                 });
     }
 
+    public Disposable sendFacebookToken(final Socket socket, final BaseFragmentActivity activity, String email, String name, final AccessToken token){
+        List<String> userDetails = new ArrayList<>();
+        userDetails.add(email);
+        userDetails.add(name);
+        userDetails.add(token.getToken());
+        Observable<List<String>> userDetailObservable = Observable.just(userDetails);
+        return userDetailObservable
+                .subscribeOn(Schedulers.io())
+                .map(new Function<List<String>, Integer>() {
+                    @Override
+                    public Integer apply(List<String> strings) throws Exception {
+                        final String userEmail = strings.get(0);
+                        final String userName = strings.get(1);
+                        final String tokenString = strings.get(2);
+                        AuthCredential authCredential = FacebookAuthProvider.getCredential(tokenString);
+                        FirebaseAuth.getInstance().signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if(!task.isSuccessful()){
+                                    Toast.makeText(activity.getApplicationContext(),task.getException().getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                                }else{
+                                    try {
+                                        JSONObject facebookData = new JSONObject();
+                                        facebookData.put("email",userEmail);
+                                        facebookData.put("name",userName);
+                                        socket.emit("userInfo", facebookData);
+                                        FirebaseAuth.getInstance().signOut();
+                                    }catch (JSONException e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        });
+                        return SERVER_SUCCESS;
+
+
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>(){
+                    @Override  public void onNext(Integer integer) {}
+                    @Override  public void onError(Throwable e) {}
+                    @Override  public void onComplete() {}
+                });
+
+    }
+
     public Disposable sendLogingInfo(final EditText userEmailEt, final EditText userPasswordEt, final Socket socket
-            , final BaseFragmentActivity activity ){
+            , final BaseFragmentActivity activity , final ProgressBar progressBar){
         List<String> userDetails = new ArrayList<>();
         userDetails.add(userEmailEt.getText().toString());
         userDetails.add(userPasswordEt.getText().toString());
@@ -152,14 +213,16 @@ public class LiveAccountServices {
                                             try {
                                                 sendData.put("email",userEmail);
                                                 socket.emit("userInfo",sendData);
+                                                FirebaseAuth.getInstance().signOut();
                                             }catch (JSONException e){
                                                 e.printStackTrace();
+                                                progressBar.setVisibility(View.GONE);
                                             }
                                         }
                                     }
                                 });
 
-                        FirebaseAuth.getInstance().signOut();
+
 
                         return USER_NO_ERRORS;
 
@@ -182,6 +245,8 @@ public class LiveAccountServices {
                                 userPasswordEt.setError("Password must at least 6 characters long.");
                                 break;
                         }
+                        progressBar.setVisibility(integer.intValue() == USER_NO_ERRORS ? View.VISIBLE : View.GONE);
+
                     }
 
                     @Override public void onError(Throwable e) {}
@@ -192,7 +257,7 @@ public class LiveAccountServices {
     }
 
     public Disposable sendRegistrationInfo(final EditText userNameEt, final EditText userEmailEt,
-                                             final EditText userPasswordEt, final Socket socket){
+                                           final EditText userPasswordEt, final Socket socket, final ProgressBar progressBar){
         List<String> userDetails = new ArrayList<>();
         userDetails.add(userNameEt.getText().toString());
         userDetails.add(userEmailEt.getText().toString());
@@ -254,6 +319,7 @@ public class LiveAccountServices {
                                 userNameEt.setError("Username can't be empty");
                                 break;
                         }
+                        progressBar.setVisibility(integer.intValue() == SERVER_SUCCESS ? View.VISIBLE : View.GONE);
                     }
 
                     @Override public void onError(Throwable e) {}
