@@ -97,6 +97,7 @@ public class LoginFragment extends BaseFragment {
         // Configure sign-in to request the user’s basic profile like name and email
         GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
+                .requestProfile()
                 .requestIdToken(Constants.GOOGLE_ID)
                 .build();
         // Build a GoogleApiClient with access to GoogleSignIn.API and the options above.
@@ -153,9 +154,7 @@ public class LoginFragment extends BaseFragment {
     public void setFacebookLoginButton(){
 
 
-
         facebookButton.setReadPermissions("email","public_profile");
-
         facebookButton.registerCallback(mCllbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(final LoginResult loginResult) {
@@ -166,8 +165,10 @@ public class LoginFragment extends BaseFragment {
                             mProgressBar.setVisibility(View.VISIBLE);
                             String email = object.getString("email");
                             String name = object.getString("name");
+                            String ProfilePicURL = object.getJSONObject("picture").getJSONObject("data").getString("url");
+
                             AuthCredential authCredential = FacebookAuthProvider.getCredential(loginResult.getAccessToken().getToken());
-                            mCompositeDisposable.add(mLiveAccountServices.SignInWithLoginToken(mSocket,mActivity,email,name,authCredential,mProgressBar));
+                            mCompositeDisposable.add(mLiveAccountServices.SignInWithLoginToken(mSocket,mActivity,email,name,ProfilePicURL,authCredential,mProgressBar));
                         }   catch (JSONException e){
                             mProgressBar.setVisibility(View.GONE);
                             e.printStackTrace();
@@ -175,7 +176,7 @@ public class LoginFragment extends BaseFragment {
                     }
                 });
                 Bundle parameters = new Bundle();
-                parameters.putString("fields","id,name,email,gender,birthday");
+                parameters.putString("fields","id,name,email,gender,birthday,picture.type(large)");
                 graphRequest.setParameters(parameters);
                 graphRequest.executeAsync();
             }
@@ -233,7 +234,7 @@ public class LoginFragment extends BaseFragment {
                 AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
                 mProgressBar.setVisibility(View.VISIBLE);
                 mCompositeDisposable.add(mLiveAccountServices.SignInWithLoginToken(mSocket,mActivity,account.getEmail(),
-                        account.getDisplayName(),credential,mProgressBar));
+                        account.getDisplayName(),account.getPhotoUrl().toString(),credential,mProgressBar));
             }else{
                 Log.e(getActivity().getClass().getSimpleName(), "Login Unsuccessful. ");
                 Toast.makeText(getContext(), "Login Unsuccessful", Toast.LENGTH_SHORT)

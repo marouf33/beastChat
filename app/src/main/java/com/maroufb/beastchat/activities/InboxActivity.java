@@ -50,6 +50,7 @@ public class InboxActivity extends BaseFragmentActivity {
         // Configure sign-in to request the user’s basic profile like name and email
         GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
+                .requestProfile()
                 .build();
         // Build a GoogleApiClient with access to GoogleSignIn.API and the options above.
         mGoogleApiClient = new GoogleApiClient.Builder(this)

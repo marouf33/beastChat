@@ -26,21 +26,6 @@ function logUserIn(socket,io){
             var additionalClaims = {
               email:data.email
             };
-            
-            if(!snapshot && data.name){
-              var date = {
-                data:admin.database.ServerValue.TIMESTAMP
-              };
-      
-              userRef.set({
-                email:data.email,
-                userName:data.name,
-                userPicture:'https://dl.dropboxusercontent.com/s/sdmw0p5avpvh41g/635319915.jpg?dl=0',
-                dateJoined:date,
-                hasLoggedIn:false
-              });
-              
-            }
             admin.auth().createCustomToken(userRecord.uid,additionalClaims)
             .then((customToken) =>{
 
@@ -51,7 +36,7 @@ function logUserIn(socket,io){
                   var userPic;
                   if(!snapshot.val() && data.name){
                     userName = data.name;
-                    userPic = 'https://dl.dropboxusercontent.com/s/sdmw0p5avpvh41g/635319915.jpg?dl=0';
+                    userPic = data.profilePicURL;
                     var date = {
                       data:admin.database.ServerValue.TIMESTAMP
                     };

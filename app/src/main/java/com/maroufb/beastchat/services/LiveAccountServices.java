@@ -133,12 +133,12 @@ public class LiveAccountServices {
 
 
 
-    public Disposable SignInWithLoginToken(final Socket socket, final BaseFragmentActivity activity, String email, String name,
-                                           final AuthCredential authCredential, final ProgressBar progressBar){
+    public Disposable SignInWithLoginToken(final Socket socket, final BaseFragmentActivity activity, String email, String name
+                                           ,String profilePicURL, final AuthCredential authCredential, final ProgressBar progressBar){
         List<String> userDetails = new ArrayList<>();
         userDetails.add(email);
         userDetails.add(name);
-     //   userDetails.add(token.getToken());
+        userDetails.add(profilePicURL);
         Observable<List<String>> userDetailObservable = Observable.just(userDetails);
         return userDetailObservable
                 .subscribeOn(Schedulers.io())
@@ -147,6 +147,7 @@ public class LiveAccountServices {
                     public Integer apply(List<String> strings) throws Exception {
                         final String userEmail = strings.get(0);
                         final String userName = strings.get(1);
+                        final String userProfilePicURL = strings.get(2);
                         FirebaseAuth.getInstance().signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
@@ -158,6 +159,7 @@ public class LiveAccountServices {
                                         JSONObject loginData = new JSONObject();
                                         loginData.put("email",userEmail);
                                         loginData.put("name",userName);
+                                        loginData.put("profilePicURL",userProfilePicURL);
                                         socket.emit("userInfo", loginData);
                                         FirebaseAuth.getInstance().signOut();
                                     }catch (JSONException e){
