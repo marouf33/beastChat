@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout android:id="@+id/activity_login_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -63,13 +64,27 @@
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/activity_login_facebook_button"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/fragment_login_registerButton"
+        app:layout_constraintEnd_toStartOf="@id/login_with_google"
+        app:layout_constraintStart_toStartOf="parent"
+     />
+
+
+    <com.shobhitpuri.custombuttons.GoogleSignInButton
+        android:id="@+id/login_with_google"
+        android:layout_width="0dp"
+        android:layout_height="38dp"
+        android:layout_marginTop="6dp"
+        android:layout_centerInParent="true"
+        android:text="Google Sign In      "
+        app:isDarkTheme="false"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/fragment_login_registerButton"
+        app:layout_constraintStart_toEndOf="@id/activity_login_facebook_button"/>
 
     <ProgressBar
         android:id="@+id/login_progressBar"

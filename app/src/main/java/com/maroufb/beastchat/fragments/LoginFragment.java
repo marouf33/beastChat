@@ -18,11 +18,22 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.internal.CallbackManagerImpl;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.activities.RegisterActivity;
+import com.maroufb.beastchat.application.BaseApplication;
 import com.maroufb.beastchat.services.LiveAccountServices;
 import com.maroufb.beastchat.utils.Constants;
 
@@ -60,6 +71,9 @@ public class LoginFragment extends BaseFragment {
 
     private CallbackManager mCllbackManager;
 
+    private GoogleApiClient mGoogleApiClient;
+
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,9 +86,29 @@ public class LoginFragment extends BaseFragment {
 
         mLiveAccountServices = LiveAccountServices.getInstance();
         mSocket.on("token",tokenListener());
-
+        mCllbackManager = CallbackManager.Factory.create();
+        configureGoogleSignIn();
 
         mSocket.connect();
+    }
+
+    // This method configures Google SignIn
+    public void configureGoogleSignIn(){
+        // Configure sign-in to request the user’s basic profile like name and email
+        GoogleSignInOptions options = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestIdToken(Constants.GOOGLE_ID)
+                .build();
+        // Build a GoogleApiClient with access to GoogleSignIn.API and the options above.
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+                .enableAutoManage(getActivity() /* FragmentActivity */, new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                        Toast.makeText(getActivity(),connectionResult.getErrorMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addApi(Auth.GOOGLE_SIGN_IN_API, options)
+                .build();
     }
 
     public static  LoginFragment newInstance(){
@@ -89,6 +123,14 @@ public class LoginFragment extends BaseFragment {
         mUnbinder = ButterKnife.bind(this,rootView);
         mProgressBar.setVisibility(View.GONE);
         return rootView;
+    }
+
+
+
+    @OnClick(R.id.login_with_google)
+    public void signInGoogle() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, Constants.GOOGLE_SIGN_IN);
     }
 
     @Override
@@ -111,7 +153,7 @@ public class LoginFragment extends BaseFragment {
     public void setFacebookLoginButton(){
 
 
-        mCllbackManager = CallbackManager.Factory.create();
+
         facebookButton.setReadPermissions("email","public_profile");
 
         facebookButton.registerCallback(mCllbackManager, new FacebookCallback<LoginResult>() {
@@ -124,7 +166,8 @@ public class LoginFragment extends BaseFragment {
                             mProgressBar.setVisibility(View.VISIBLE);
                             String email = object.getString("email");
                             String name = object.getString("name");
-                            mCompositeDisposable.add(mLiveAccountServices.sendFacebookToken(mSocket,mActivity,email,name,loginResult.getAccessToken()));
+                            AuthCredential authCredential = FacebookAuthProvider.getCredential(loginResult.getAccessToken().getToken());
+                            mCompositeDisposable.add(mLiveAccountServices.SignInWithLoginToken(mSocket,mActivity,email,name,authCredential,mProgressBar));
                         }   catch (JSONException e){
                             mProgressBar.setVisibility(View.GONE);
                             e.printStackTrace();
@@ -156,7 +199,7 @@ public class LoginFragment extends BaseFragment {
             public void call(Object... args) {
                 JSONObject jsonObject = (JSONObject) args[0];
                 mCompositeDisposable.add(mLiveAccountServices
-                .getAuthToken(jsonObject,mActivity,mSharedPreferences,mProgressBar));
+                .getAuthToken(jsonObject,mActivity,mSharedPreferences,mProgressBar,mGoogleApiClient));
 
             }
         };
@@ -183,6 +226,23 @@ public class LoginFragment extends BaseFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        mCllbackManager.onActivityResult(requestCode,resultCode,data);
+        if(requestCode==Constants.GOOGLE_SIGN_IN){
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                GoogleSignInAccount account = result.getSignInAccount();
+                AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+                mProgressBar.setVisibility(View.VISIBLE);
+                mCompositeDisposable.add(mLiveAccountServices.SignInWithLoginToken(mSocket,mActivity,account.getEmail(),
+                        account.getDisplayName(),credential,mProgressBar));
+            }else{
+                Log.e(getActivity().getClass().getSimpleName(), "Login Unsuccessful. ");
+                Toast.makeText(getContext(), "Login Unsuccessful", Toast.LENGTH_SHORT)
+                        .show();
+            }
+        }
+        else if (requestCode == CallbackManagerImpl.RequestCodeOffset.Login.toRequestCode()) {
+            mCllbackManager.onActivityResult(requestCode, resultCode, data);
+        }
+
     }
 }

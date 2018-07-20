@@ -1,10 +1,12 @@
 package com.maroufb.beastchat.application;
 
 import android.app.Application;
+import android.support.annotation.NonNull;
+import android.widget.Toast;
 
-import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.google.firebase.database.FirebaseDatabase;
+
 
 public class BaseApplication extends Application {
 
@@ -13,5 +15,8 @@ public class BaseApplication extends Application {
         super.onCreate();
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         AppEventsLogger.activateApp(this);
+
     }
+
+
 }

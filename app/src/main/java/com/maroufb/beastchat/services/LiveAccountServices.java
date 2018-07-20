@@ -10,12 +10,11 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.facebook.AccessToken;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.activities.InboxActivity;
@@ -28,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
@@ -58,7 +56,8 @@ public class LiveAccountServices {
         return mLiveAccountServices;
     }
 
-    public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, final SharedPreferences sharedPreferences,final ProgressBar progressBar){
+    public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, final SharedPreferences sharedPreferences
+            ,final ProgressBar progressBar, GoogleApiClient GoogleApiClient){
         
         Observable<JSONObject> jsonObjectObservable = Observable.just(data);
         
@@ -132,11 +131,14 @@ public class LiveAccountServices {
                 });
     }
 
-    public Disposable sendFacebookToken(final Socket socket, final BaseFragmentActivity activity, String email, String name, final AccessToken token){
+
+
+    public Disposable SignInWithLoginToken(final Socket socket, final BaseFragmentActivity activity, String email, String name,
+                                           final AuthCredential authCredential, final ProgressBar progressBar){
         List<String> userDetails = new ArrayList<>();
         userDetails.add(email);
         userDetails.add(name);
-        userDetails.add(token.getToken());
+     //   userDetails.add(token.getToken());
         Observable<List<String>> userDetailObservable = Observable.just(userDetails);
         return userDetailObservable
                 .subscribeOn(Schedulers.io())
@@ -145,22 +147,22 @@ public class LiveAccountServices {
                     public Integer apply(List<String> strings) throws Exception {
                         final String userEmail = strings.get(0);
                         final String userName = strings.get(1);
-                        final String tokenString = strings.get(2);
-                        AuthCredential authCredential = FacebookAuthProvider.getCredential(tokenString);
                         FirebaseAuth.getInstance().signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if(!task.isSuccessful()){
                                     Toast.makeText(activity.getApplicationContext(),task.getException().getLocalizedMessage(),Toast.LENGTH_LONG).show();
+                                    progressBar.setVisibility(View.GONE);
                                 }else{
                                     try {
-                                        JSONObject facebookData = new JSONObject();
-                                        facebookData.put("email",userEmail);
-                                        facebookData.put("name",userName);
-                                        socket.emit("userInfo", facebookData);
+                                        JSONObject loginData = new JSONObject();
+                                        loginData.put("email",userEmail);
+                                        loginData.put("name",userName);
+                                        socket.emit("userInfo", loginData);
                                         FirebaseAuth.getInstance().signOut();
                                     }catch (JSONException e){
                                         e.printStackTrace();
+                                        progressBar.setVisibility(View.GONE);
                                     }
                                 }
                             }

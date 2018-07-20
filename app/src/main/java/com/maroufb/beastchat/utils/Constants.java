@@ -10,4 +10,11 @@ public class Constants {
     public static final String USER_PICTURE = "USER_PICTURE";
 
 
+    public final static String GOOGLE_ID = "466090969946-roaajj8hs9bqor93amc0ah7pch4695f3.apps.googleusercontent.com";
+
+
+    public static final int GOOGLE_SIGN_IN = 9001;
+
+
+
 }
