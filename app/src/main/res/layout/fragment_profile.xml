@@ -6,19 +6,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
-        android:id="@+id/inbox_text_view"
+        android:id="@+id/profile_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Inbox"
+        android:text="Profile"
         android:textSize="26sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/inbox_bottombar"
+        app:layout_constraintBottom_toTopOf="@id/profile_bottombar"
         />
 
     <com.roughike.bottombar.BottomBar
-        android:id="@+id/inbox_bottombar"
+        android:id="@+id/profile_bottombar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         app:layout_constraintBottom_toBottomOf="parent"

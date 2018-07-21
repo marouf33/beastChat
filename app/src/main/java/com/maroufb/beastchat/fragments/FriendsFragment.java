@@ -14,24 +14,21 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public class InboxFragment extends BaseFragment {
-
-    @BindView(R.id.inbox_bottombar) BottomBar mBottomBar;
+public class FriendsFragment extends BaseFragment {
+    @BindView(R.id.friends_bottombar)   BottomBar mBottomBar;
 
     private Unbinder mUnbinder;
 
-    public static InboxFragment newInstancce(){
-        return new InboxFragment();
-    }
+    public static FriendsFragment newInstance(){return  new FriendsFragment();}
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_inbox,container,false);
+        View rootView = inflater.inflate(R.layout.fragment_friends,container,false);
         mUnbinder = ButterKnife.bind(this,rootView);
-        mBottomBar.selectTabWithId(R.id.tab_messages);
-        setupBottomBar(mBottomBar, 1);
-        return  rootView;
+        mBottomBar.selectTabWithId(R.id.tab_friends);
+        setupBottomBar(mBottomBar, 2);
+        return rootView;
     }
 
     @Override
