@@ -36,7 +36,7 @@ public class FindFriendsViewHolder extends RecyclerView.ViewHolder {
         itemView.setTag(user);
         mUserName.setText(user.getUserName());
         Picasso.get()
-                .load(user.getPicture())
+                .load(user.getUserPicture())
                 .into(mUserPicture);
     }
 }

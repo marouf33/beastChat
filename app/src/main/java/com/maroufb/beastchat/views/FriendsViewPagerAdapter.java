@@ -5,7 +5,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.maroufb.beastchat.fragments.FindFriendFragment;
+import com.maroufb.beastchat.fragments.FindFriendsFragment;
 import com.maroufb.beastchat.fragments.FriendRequestFragment;
 import com.maroufb.beastchat.fragments.UserFriendsFragment;
 
@@ -26,7 +26,7 @@ public class FriendsViewPagerAdapter extends FragmentStatePagerAdapter {
                returnFragment = FriendRequestFragment.newInstance();
                break;
            case 2:
-               returnFragment = FindFriendFragment.newInstance();
+               returnFragment = FindFriendsFragment.newInstance();
                break;
            default:
                    return null;
