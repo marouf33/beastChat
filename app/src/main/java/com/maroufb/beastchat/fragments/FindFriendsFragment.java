@@ -19,10 +19,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
+import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -40,12 +42,21 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
 
     private Unbinder mUnbinder;
 
-    private DatabaseReference mGetAllusersReference;
+    private DatabaseReference mGetAllUsersReference;
     private ValueEventListener mGetAllUsersListener;
+
+    private DatabaseReference mGetAllFriendsRequestsSentReference;
+    private ValueEventListener mGetAllFriendsRequestsListener;
+
+
     private String mUserEmailString;
     private FindFriendsAdapter mFindFriendsAdapter;
 
     private List<User> mAllUsers;
+
+    private LiveFriendServices mLiveFriendServices;
+
+    public HashMap<String , User> mFriendRequestsSentMap;
 
     public static FindFriendsFragment newInstance(){
         return new FindFriendsFragment();
@@ -55,6 +66,8 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mUserEmailString = mSharedPreferences.getString(Constants.USER_EMAIL,"");
+        mLiveFriendServices = LiveFriendServices.getInstance();
+        mFriendRequestsSentMap = new HashMap<>();
     }
 
     @Nullable
@@ -66,13 +79,25 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
         mFindFriendsAdapter = new FindFriendsAdapter((BaseFragmentActivity) getActivity(),this);
         mGetAllUsersListener = getAllUsers(mFindFriendsAdapter,mUserEmailString);
 
-        mGetAllusersReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIRE_BASE_PATH_USERS);
-        mGetAllusersReference.addValueEventListener(mGetAllUsersListener);
+        mGetAllUsersReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIRE_BASE_PATH_USERS);
+        mGetAllUsersReference.addValueEventListener(mGetAllUsersListener);
+
+        mGetAllFriendsRequestsSentReference = FirebaseDatabase.getInstance().getReference()
+                .child(Constants.FIREBASE_PATH_FRIEND_REQUEST_SENT)
+                .child(Constants.emcodeEmail(mUserEmailString));
+
+        mGetAllFriendsRequestsListener = mLiveFriendServices.getFriendRequestsSent(mFindFriendsAdapter,this);
+        mGetAllFriendsRequestsSentReference.addValueEventListener(mGetAllFriendsRequestsListener);
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setAdapter(mFindFriendsAdapter);
 
         return rootView;
+    }
+
+    public void setmFriendRequestsSentMap(HashMap<String, User> friendRequestsSentMap) {
+        mFriendRequestsSentMap.clear();
+        mFriendRequestsSentMap.putAll(friendRequestsSentMap);
     }
 
     public ValueEventListener getAllUsers(final FindFriendsAdapter adapter, String currentUsersEmail){
@@ -102,12 +127,20 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
         mUnbinder.unbind();
 
         if(mGetAllUsersListener != null){
-            mGetAllusersReference.removeEventListener(mGetAllUsersListener);
+            mGetAllUsersReference.removeEventListener(mGetAllUsersListener);
+        }
+
+        if(mGetAllFriendsRequestsListener != null){
+            mGetAllFriendsRequestsSentReference.removeEventListener(mGetAllFriendsRequestsListener);
         }
     }
 
     @Override
     public void onUserClicked(User user) {
-
+        if(Constants.isIncludedInMap(mFriendRequestsSentMap,user)){
+            mGetAllFriendsRequestsSentReference.child(Constants.emcodeEmail(user.getEmail())).removeValue();
+        }else {
+            mGetAllFriendsRequestsSentReference.child(Constants.emcodeEmail(user.getEmail())).setValue(user);
+        }
     }
 }

@@ -11,6 +11,7 @@ import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class FindFriendsAdapter extends RecyclerView.Adapter {
@@ -20,16 +21,26 @@ public class FindFriendsAdapter extends RecyclerView.Adapter {
     private LayoutInflater mInflater;
     private UserListener mListener;
 
+    private HashMap<String, User> mFriendRequestSentMap;
+
     public FindFriendsAdapter(BaseFragmentActivity mActivity, UserListener mListener) {
         this.mActivity = mActivity;
         this.mListener = mListener;
         mInflater= mActivity.getLayoutInflater();
         mUsers = new ArrayList<>();
+        mFriendRequestSentMap = new HashMap<>();
     }
 
     public void setmUsers(List<User> users) {
         mUsers.clear();
         mUsers.addAll(users);
+        notifyDataSetChanged();
+
+    }
+
+    public void setmFriendRequestSentMap(HashMap<String, User> friendRequestSentMap) {
+        mFriendRequestSentMap.clear();
+        mFriendRequestSentMap.putAll(friendRequestSentMap);
         notifyDataSetChanged();
     }
 
@@ -50,7 +61,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ((FindFriendsViewHolder) holder).populate(mActivity,mUsers.get(position));
+        ((FindFriendsViewHolder) holder).populate(mActivity,mUsers.get(position), mFriendRequestSentMap);
     }
 
     @Override

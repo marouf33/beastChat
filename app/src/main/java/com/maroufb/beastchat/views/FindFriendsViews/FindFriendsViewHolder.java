@@ -8,7 +8,10 @@ import android.widget.TextView;
 
 import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.R;
+import com.maroufb.beastchat.utils.Constants;
 import com.squareup.picasso.Picasso;
+
+import java.util.HashMap;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,11 +35,21 @@ public class FindFriendsViewHolder extends RecyclerView.ViewHolder {
         ButterKnife.bind(this,itemView);
     }
 
-    public void populate(Context context, User user){
+    public void populate(Context context, User user, HashMap<String, User> friendRequestSentMap){
         itemView.setTag(user);
         mUserName.setText(user.getUserName());
         Picasso.get()
                 .load(user.getUserPicture())
                 .into(mUserPicture);
+
+        if(Constants.isIncludedInMap(friendRequestSentMap,user)){
+            mUserStatus.setVisibility(View.VISIBLE);
+            mUserStatus.setText("Friend Request Sent");
+            mAddFriend.setImageResource(R.mipmap.ic_cancel_request);
+        }else {
+            mUserStatus.setVisibility(View.GONE);
+            mAddFriend.setImageResource(R.mipmap.ic_add_friends);
+
+        }
     }
 }

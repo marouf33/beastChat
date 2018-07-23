@@ -1,8 +1,12 @@
 package com.maroufb.beastchat.utils;
 
+import com.maroufb.beastchat.Entities.User;
+
+import java.util.HashMap;
+
 public class Constants {
 
-    public static final String IP_LOCAL_HOST = "http://172.16.1.34:4000";
+    public static final String IP_LOCAL_HOST = "http://10.0.0.8:4000";
 
     public static final String USER_INFO_PREFERENCE = "USER_INFO_PREFERENCE";
     public static final String USER_EMAIL = "USER_EMAIL";
@@ -16,5 +20,16 @@ public class Constants {
     public static final int GOOGLE_SIGN_IN = 9001;
 
     public static final String FIRE_BASE_PATH_USERS = "users";
+
+    public static final String FIREBASE_PATH_FRIEND_REQUEST_SENT = "friendRequestsSent";
+
+    public static String emcodeEmail(String email){
+        return email.replace(".",",");
+    }
+
+    public static boolean isIncludedInMap(HashMap<String, User> userHashMap, User user){
+        return  user!= null && userHashMap.size() != 0
+                && userHashMap.containsKey(user.getEmail()) ;
+    }
 
 }
