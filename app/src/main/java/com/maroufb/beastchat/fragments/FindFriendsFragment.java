@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,7 @@ import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 public class FindFriendsFragment extends BaseFragment implements FindFriendsAdapter.UserListener{
 
@@ -58,6 +62,8 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
 
     public HashMap<String , User> mFriendRequestsSentMap;
 
+    private Socket mSocket;
+
     public static FindFriendsFragment newInstance(){
         return new FindFriendsFragment();
     }
@@ -65,6 +71,15 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            mSocket = IO.socket(Constants.IP_LOCAL_HOST);
+        } catch (URISyntaxException e) {
+            Log.i(RegisterFragment.class.getSimpleName(),e.getMessage() );
+            Toast.makeText(getActivity(),"Can't connect",Toast.LENGTH_SHORT);
+        }
+
+        mSocket.connect();
+
         mUserEmailString = mSharedPreferences.getString(Constants.USER_EMAIL,"");
         mLiveFriendServices = LiveFriendServices.getInstance();
         mFriendRequestsSentMap = new HashMap<>();
@@ -136,11 +151,19 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSocket.disconnect();
+    }
+
+    @Override
     public void onUserClicked(User user) {
         if(Constants.isIncludedInMap(mFriendRequestsSentMap,user)){
             mGetAllFriendsRequestsSentReference.child(Constants.emcodeEmail(user.getEmail())).removeValue();
+            mCompositeDisposable.add(mLiveFriendServices.addOrRemoveFriendRequest(mSocket,mUserEmailString,user.getEmail(),"1"));
         }else {
             mGetAllFriendsRequestsSentReference.child(Constants.emcodeEmail(user.getEmail())).setValue(user);
+            mCompositeDisposable.add(mLiveFriendServices.addOrRemoveFriendRequest(mSocket,mUserEmailString,user.getEmail(),"0"));
         }
     }
 }

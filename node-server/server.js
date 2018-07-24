@@ -21,8 +21,10 @@ io.on('connection', (socket)=>{
 });
 
 var accountRequests = require('./firebase/account-services');
+var friendRequests = require('./firebase/friend-services');
 
 accountRequests.userAccountRequests(io);
+friendRequests.userFriendRequests(io);
 
 http.listen(4000,()=>{
   console.log('Server is listening on port 4000');

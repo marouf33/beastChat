@@ -7,7 +7,7 @@ var admin = require("firebase-admin");
 
 var userAccountRequests = (io) =>{
   io.on('connection', (socket)=>{
-    console.log(`Client ${socket.id} is connected!`);
+    console.log(`Client ${socket.id} is connected to Account Services!`);
     detectDisconnection(socket,io);
     registerUser(socket,io);
     logUserIn(socket,io);
@@ -134,7 +134,7 @@ function registerUser(socket,io){
 
 function detectDisconnection(socket,io){
   socket.on('disconnect',()=>{
-    console.log('A client has disconnected.');
+    console.log('A client has disconnected from Account Services.');
   });
 }
 
