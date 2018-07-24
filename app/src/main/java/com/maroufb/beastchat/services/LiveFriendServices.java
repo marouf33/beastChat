@@ -97,4 +97,26 @@ public class LiveFriendServices {
             }
         };
     }
+
+    public ValueEventListener getFriendRequestsReceived(final FindFriendsAdapter adapter){
+        final HashMap<String, User> userHashMap = new HashMap<>();
+
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                userHashMap.clear();
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()){
+                    User user = snapshot.getValue(User.class);
+                    userHashMap.put(user.getEmail(),user);
+                }
+
+                adapter.setmFriendRequestReceivedMap(userHashMap);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+    }
 }

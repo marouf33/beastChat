@@ -22,6 +22,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter {
     private UserListener mListener;
 
     private HashMap<String, User> mFriendRequestSentMap;
+    private HashMap<String , User> mFriendRequestReceivedMap;
 
     public FindFriendsAdapter(BaseFragmentActivity mActivity, UserListener mListener) {
         this.mActivity = mActivity;
@@ -29,6 +30,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter {
         mInflater= mActivity.getLayoutInflater();
         mUsers = new ArrayList<>();
         mFriendRequestSentMap = new HashMap<>();
+        mFriendRequestReceivedMap = new HashMap<>();
     }
 
     public void setmUsers(List<User> users) {
@@ -41,6 +43,12 @@ public class FindFriendsAdapter extends RecyclerView.Adapter {
     public void setmFriendRequestSentMap(HashMap<String, User> friendRequestSentMap) {
         mFriendRequestSentMap.clear();
         mFriendRequestSentMap.putAll(friendRequestSentMap);
+        notifyDataSetChanged();
+    }
+
+    public void setmFriendRequestReceivedMap(HashMap<String, User> friendRequestReveivedMap) {
+        mFriendRequestReceivedMap.clear();
+        mFriendRequestReceivedMap.putAll(friendRequestReveivedMap);
         notifyDataSetChanged();
     }
 
@@ -61,7 +69,7 @@ public class FindFriendsAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        ((FindFriendsViewHolder) holder).populate(mActivity,mUsers.get(position), mFriendRequestSentMap);
+        ((FindFriendsViewHolder) holder).populate(mActivity,mUsers.get(position), mFriendRequestSentMap, mFriendRequestReceivedMap);
     }
 
     @Override

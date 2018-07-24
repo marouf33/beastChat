@@ -50,7 +50,10 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
     private ValueEventListener mGetAllUsersListener;
 
     private DatabaseReference mGetAllFriendsRequestsSentReference;
-    private ValueEventListener mGetAllFriendsRequestsListener;
+    private ValueEventListener mGetAllFriendsRequestsSentListener;
+
+    private DatabaseReference mGettAllFriendsRequestsReceivedReference;
+    private ValueEventListener mGetAllFriendsRequestsReceivedListener;
 
 
     private String mUserEmailString;
@@ -99,10 +102,16 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
 
         mGetAllFriendsRequestsSentReference = FirebaseDatabase.getInstance().getReference()
                 .child(Constants.FIREBASE_PATH_FRIEND_REQUEST_SENT)
-                .child(Constants.emcodeEmail(mUserEmailString));
+                .child(Constants.encodeEmail(mUserEmailString));
 
-        mGetAllFriendsRequestsListener = mLiveFriendServices.getFriendRequestsSent(mFindFriendsAdapter,this);
-        mGetAllFriendsRequestsSentReference.addValueEventListener(mGetAllFriendsRequestsListener);
+        mGettAllFriendsRequestsReceivedReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_FRIEND_REQUEST_RECEIVED)
+        .child(Constants.encodeEmail(mUserEmailString));
+
+        mGetAllFriendsRequestsSentListener = mLiveFriendServices.getFriendRequestsSent(mFindFriendsAdapter,this);
+        mGetAllFriendsRequestsSentReference.addValueEventListener(mGetAllFriendsRequestsSentListener);
+
+        mGetAllFriendsRequestsReceivedListener = mLiveFriendServices.getFriendRequestsReceived(mFindFriendsAdapter);
+        mGettAllFriendsRequestsReceivedReference.addValueEventListener(mGetAllFriendsRequestsReceivedListener);
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setAdapter(mFindFriendsAdapter);
@@ -145,8 +154,12 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
             mGetAllUsersReference.removeEventListener(mGetAllUsersListener);
         }
 
-        if(mGetAllFriendsRequestsListener != null){
-            mGetAllFriendsRequestsSentReference.removeEventListener(mGetAllFriendsRequestsListener);
+        if(mGetAllFriendsRequestsSentListener != null){
+            mGetAllFriendsRequestsSentReference.removeEventListener(mGetAllFriendsRequestsSentListener);
+        }
+
+        if(mGetAllFriendsRequestsReceivedListener != null){
+            mGettAllFriendsRequestsReceivedReference.removeEventListener(mGetAllFriendsRequestsReceivedListener);
         }
     }
 
@@ -159,10 +172,10 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
     @Override
     public void onUserClicked(User user) {
         if(Constants.isIncludedInMap(mFriendRequestsSentMap,user)){
-            mGetAllFriendsRequestsSentReference.child(Constants.emcodeEmail(user.getEmail())).removeValue();
+            mGetAllFriendsRequestsSentReference.child(Constants.encodeEmail(user.getEmail())).removeValue();
             mCompositeDisposable.add(mLiveFriendServices.addOrRemoveFriendRequest(mSocket,mUserEmailString,user.getEmail(),"1"));
         }else {
-            mGetAllFriendsRequestsSentReference.child(Constants.emcodeEmail(user.getEmail())).setValue(user);
+            mGetAllFriendsRequestsSentReference.child(Constants.encodeEmail(user.getEmail())).setValue(user);
             mCompositeDisposable.add(mLiveFriendServices.addOrRemoveFriendRequest(mSocket,mUserEmailString,user.getEmail(),"0"));
         }
     }

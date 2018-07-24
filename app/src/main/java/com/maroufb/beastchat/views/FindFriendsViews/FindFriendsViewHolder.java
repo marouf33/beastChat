@@ -35,7 +35,7 @@ public class FindFriendsViewHolder extends RecyclerView.ViewHolder {
         ButterKnife.bind(this,itemView);
     }
 
-    public void populate(Context context, User user, HashMap<String, User> friendRequestSentMap){
+    public void populate(Context context, User user, HashMap<String, User> friendRequestSentMap, HashMap<String, User> friendRequestReceivedMap){
         itemView.setTag(user);
         mUserName.setText(user.getUserName());
         Picasso.get()
@@ -46,10 +46,15 @@ public class FindFriendsViewHolder extends RecyclerView.ViewHolder {
             mUserStatus.setVisibility(View.VISIBLE);
             mUserStatus.setText("Friend Request Sent");
             mAddFriend.setImageResource(R.mipmap.ic_cancel_request);
+            mAddFriend.setVisibility(View.VISIBLE);
+        }else if(Constants.isIncludedInMap(friendRequestReceivedMap,user)){
+            mAddFriend.setVisibility(View.GONE);
+            mUserStatus.setText("This User Has Requested You");
+            mUserStatus.setVisibility(View.VISIBLE);
         }else {
             mUserStatus.setVisibility(View.GONE);
             mAddFriend.setImageResource(R.mipmap.ic_add_friends);
-
+            mAddFriend.setVisibility(View.VISIBLE);
         }
     }
 }
