@@ -5,11 +5,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
@@ -28,10 +31,18 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
@@ -43,6 +54,9 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
 
     @BindView(R.id.fragment_find_friends_recyclerView)
     RecyclerView mRecyclerView;
+
+    @BindView(R.id.fragment_find_friends_noResults)
+    TextView mNoResults;
 
     private Unbinder mUnbinder;
 
@@ -66,6 +80,8 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
     public HashMap<String , User> mFriendRequestsSentMap;
 
     private Socket mSocket;
+
+    private PublishSubject<String> mSearchBarString;
 
     public static FindFriendsFragment newInstance(){
         return new FindFriendsFragment();
@@ -116,7 +132,66 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setAdapter(mFindFriendsAdapter);
 
+        mCompositeDisposable.add(createSearchBarDisposable());
+        listenToSearchBar();
+
         return rootView;
+    }
+    
+    private Disposable createSearchBarDisposable(){
+        mSearchBarString = PublishSubject.create();
+        return mSearchBarString
+                .debounce(1000, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.io())
+                .map(new Function<String, List<User>>() {
+                    @Override
+                    public List<User> apply(String searchString) throws Exception {
+                        return mLiveFriendServices.getMatchingUsers(mAllUsers,searchString);
+
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<List<User>>(){
+                    @Override
+                    public void onNext(List<User> users) {
+                        if(users.isEmpty()){
+                            mNoResults.setVisibility(View.VISIBLE);
+                            mRecyclerView.setVisibility(View.GONE);
+                        }else {
+                            mNoResults.setVisibility(View.GONE);
+                            mRecyclerView.setVisibility(View.VISIBLE);
+                        }
+                        mFindFriendsAdapter.setmUsers(users);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    private void listenToSearchBar(){
+        mSearchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                mSearchBarString.onNext(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
     public void setmFriendRequestsSentMap(HashMap<String, User> friendRequestsSentMap) {

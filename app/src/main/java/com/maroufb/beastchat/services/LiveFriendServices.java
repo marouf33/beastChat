@@ -119,4 +119,19 @@ public class LiveFriendServices {
             }
         };
     }
+
+    public List<User> getMatchingUsers(List<User> users, String userEmail){
+        if(userEmail.isEmpty()){
+            return users;
+        }
+        List<User> usersFound = new ArrayList<>();
+
+        for(User user: users){
+            if(user.getEmail().toLowerCase().startsWith(userEmail.toLowerCase())){
+                usersFound.add(user);
+            }
+        }
+
+        return usersFound;
+    }
 }
