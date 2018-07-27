@@ -1,6 +1,9 @@
 package com.maroufb.beastchat.services;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -8,6 +11,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.fragments.FindFriendsFragment;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
+import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
 
 import org.json.JSONObject;
 
@@ -33,6 +37,36 @@ public class LiveFriendServices {
         if(mLiveFriendServices == null)
             mLiveFriendServices = new LiveFriendServices();
         return mLiveFriendServices;
+    }
+
+    public ValueEventListener gettAllFriendRequests(final FriendRequestAdapter adapter, final RecyclerView recyclerView, final TextView textView){
+
+        final List<User> users = new ArrayList<>();
+
+        return new ValueEventListener(){
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                users.clear();
+                for(DataSnapshot snapshot:dataSnapshot.getChildren()){
+                    User user = snapshot.getValue(User.class);
+                    users.add(user);
+                }
+                if(users.isEmpty()){
+                    recyclerView.setVisibility(View.GONE);
+                    textView.setVisibility(View.VISIBLE);
+                }else{
+                    recyclerView.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.GONE);
+
+                }
+                adapter.setUsers(users);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
     }
 
 

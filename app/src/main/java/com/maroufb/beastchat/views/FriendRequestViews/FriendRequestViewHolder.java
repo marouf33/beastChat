@@ -33,6 +33,7 @@ public class FriendRequestViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void populate(Context context, User user){
+        itemView.setTag(user);
         userName.setText(user.getUserName());
         Picasso.get().load(user.getUserPicture()).into(userPicture);
     }
