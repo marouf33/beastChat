@@ -5,10 +5,12 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -20,9 +22,13 @@ import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
 import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
 
+import io.socket.client.Socket;
+import java.net.URISyntaxException;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import io.socket.client.IO;
 
 public class FriendRequestFragment extends BaseFragment implements FriendRequestAdapter.OnOptionListener{
 
@@ -44,12 +50,29 @@ public class FriendRequestFragment extends BaseFragment implements FriendRequest
 
     private String mUserEmailString;
 
+    private Socket mSocket;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mLiveFriendServices = LiveFriendServices.getInstance();
         mUserEmailString = mSharedPreferences.getString(Constants.USER_EMAIL,"");
 
+        try {
+            mSocket = IO.socket(Constants.IP_LOCAL_HOST);
+        } catch (URISyntaxException e) {
+            Log.i(LoginFragment.class.getSimpleName(),e.getMessage() );
+            Toast.makeText(getActivity(),"Can't connect",Toast.LENGTH_SHORT);
+        }
+
+        mSocket.connect();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSocket.disconnect();
     }
 
     @Nullable
@@ -82,6 +105,19 @@ public class FriendRequestFragment extends BaseFragment implements FriendRequest
 
     @Override
     public void onOptionClicked(User user, String result) {
+        if(result.equals("0")){
+            DatabaseReference userFriendReference = FirebaseDatabase.getInstance().getReference()
+                    .child(Constants.FIREBASE_PATH_USER_FRIENDS).child(Constants.encodeEmail(mUserEmailString))
+                    .child(Constants.encodeEmail(user.getEmail()));
+            userFriendReference.setValue(user);
+            mGetAllUsersFriendRequestsReference.child(Constants.encodeEmail(user.getEmail()))
+                    .removeValue();
+            mCompositeDisposable.add(mLiveFriendServices.approveDeclineFriendRequest(mSocket,mUserEmailString,user.getEmail(),"0"));
 
+        }else {
+            mGetAllUsersFriendRequestsReference.child(Constants.encodeEmail(user.getEmail()))
+                    .removeValue();
+            mCompositeDisposable.add(mLiveFriendServices.approveDeclineFriendRequest(mSocket,mUserEmailString,user.getEmail(),"1"));
+        }
     }
 }

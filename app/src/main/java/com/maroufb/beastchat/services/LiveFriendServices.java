@@ -69,6 +69,46 @@ public class LiveFriendServices {
         };
     }
 
+    public Disposable approveDeclineFriendRequest(final Socket socket, String userEmail, String friendEmail, String requestCode){
+        List<String> details = new ArrayList<>();
+        details.add(userEmail);
+        details.add(friendEmail);
+        details.add(requestCode);
+
+        Observable<List<String>> listObservable = Observable.just(details);
+
+        return listObservable
+                .subscribeOn(Schedulers.io())
+                .map(new Function<List<String>, Integer>() {
+
+                    @Override
+                    public Integer apply(List<String> strings) throws Exception {
+                        JSONObject sendData = new JSONObject();
+                        sendData.put("userEmail", strings.get(0));
+                        sendData.put("friendEmail", strings.get(1));
+                        sendData.put("requestCode", strings.get(2));
+                        socket.emit("friendRequestResponse",sendData);
+                        return SERVER_SUCCESS;
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>() {
+                    @Override
+                    public void onNext(Integer integer) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
 
     public Disposable addOrRemoveFriendRequest(final Socket socket, String userEmail, String friendEmail, String requestCode){
         List<String> details = new ArrayList<>();

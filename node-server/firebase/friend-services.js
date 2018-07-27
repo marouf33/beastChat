@@ -10,8 +10,40 @@ var userFriendRequests = (io) =>{
     console.log(`Client ${socket.id} is connected to friend services!`);
     detectDisconnection(socket,io);
     sendOrDeleteFriendRequest(socket,io);
+    approveOrDeclineFriendRequest(socket,io);
   });
 };
+
+
+function approveOrDeclineFriendRequest(socket,io){
+  socket.on('friendRequestResponse',(data)=>{
+    var db = admin.database();
+        var friendRequest = db.ref('friendRequestsSent').child(encodeEmail(data.friendEmail))
+        .child(encodeEmail(data.userEmail));
+        friendRequest.remove();
+        if(data.requestCode == 0){
+
+          var db= admin.database();
+          var ref = db.ref('users');
+          var userRef = ref.child(encodeEmail(data.userEmail));
+          var userFriendsReference = db.ref('userFriends');
+          var friendFriendRef = userFriendsReference.child(encodeEmail(data.friendEmail))
+          .child(encodeEmail(data.userEmail));
+
+          userRef.once('value', (snapshot)=>{
+            friendFriendRef.set({
+                  email:snapshot.val().email,
+                  userName:snapshot.val().userName,
+                  userPicture:snapshot.val().userPicture,
+                  dateJoined:snapshot.val().dateJoined,
+                  hasLoggedIn:snapshot.val().hasLoggedIn
+              });
+          });
+
+        }
+
+  });
+}
 
 function sendOrDeleteFriendRequest(socket,io){
     socket.on('friendRequest',(data)=>{
@@ -22,6 +54,9 @@ function sendOrDeleteFriendRequest(socket,io){
         var db = admin.database();
         var friendRef = db.ref('friendRequestsReceived').child(encodeEmail(friendEmail))
         .child(encodeEmail(userEmail));
+        friendRef.remove();
+
+        if(data.requestCode)
 
         if(requestCode == 0){
 
