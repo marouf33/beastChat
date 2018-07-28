@@ -39,7 +39,27 @@ public class LiveFriendServices {
         return mLiveFriendServices;
     }
 
-    public ValueEventListener gettAllFriendRequests(final FriendRequestAdapter adapter, final RecyclerView recyclerView, final TextView textView){
+    public ValueEventListener getAllCurrentUsersFriendMap(final FindFriendsAdapter adapter){
+        final HashMap<String,User> userHashMap = new HashMap<>();
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                userHashMap.clear();
+                for(DataSnapshot snapshot:dataSnapshot.getChildren()){
+                    User user = snapshot.getValue(User.class);
+                    userHashMap.put(user.getEmail(),user);
+                }
+                adapter.setCurrentUserFriendsMap(userHashMap);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+    }
+
+    public ValueEventListener getAllFriendRequests(final FriendRequestAdapter adapter, final RecyclerView recyclerView, final TextView textView){
 
         final List<User> users = new ArrayList<>();
 

@@ -33,7 +33,6 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.activities.RegisterActivity;
-import com.maroufb.beastchat.application.BaseApplication;
 import com.maroufb.beastchat.services.LiveAccountServices;
 import com.maroufb.beastchat.utils.Constants;
 
@@ -69,7 +68,7 @@ public class LoginFragment extends BaseFragment {
     @BindView(R.id.activity_login_facebook_button)
     LoginButton facebookButton;
 
-    private CallbackManager mCllbackManager;
+    private CallbackManager mCallbackManager;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -86,7 +85,7 @@ public class LoginFragment extends BaseFragment {
 
         mLiveAccountServices = LiveAccountServices.getInstance();
         mSocket.on("token",tokenListener());
-        mCllbackManager = CallbackManager.Factory.create();
+        mCallbackManager = CallbackManager.Factory.create();
         configureGoogleSignIn();
 
         mSocket.connect();
@@ -155,7 +154,7 @@ public class LoginFragment extends BaseFragment {
 
 
         facebookButton.setReadPermissions("email","public_profile");
-        facebookButton.registerCallback(mCllbackManager, new FacebookCallback<LoginResult>() {
+        facebookButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(final LoginResult loginResult) {
                 GraphRequest graphRequest = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
@@ -242,7 +241,7 @@ public class LoginFragment extends BaseFragment {
             }
         }
         else if (requestCode == CallbackManagerImpl.RequestCodeOffset.Login.toRequestCode()) {
-            mCllbackManager.onActivityResult(requestCode, resultCode, data);
+            mCallbackManager.onActivityResult(requestCode, resultCode, data);
         }
 
     }

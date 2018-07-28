@@ -36,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
@@ -66,8 +65,11 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
     private DatabaseReference mGetAllFriendsRequestsSentReference;
     private ValueEventListener mGetAllFriendsRequestsSentListener;
 
-    private DatabaseReference mGettAllFriendsRequestsReceivedReference;
+    private DatabaseReference mGetAllFriendsRequestsReceivedReference;
     private ValueEventListener mGetAllFriendsRequestsReceivedListener;
+
+    private DatabaseReference mGetAllCurrentUsersFriendsReference;
+    private ValueEventListener mGetAllCurrentUsersFriendsListener;
 
 
     private String mUserEmailString;
@@ -120,14 +122,21 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
                 .child(Constants.FIREBASE_PATH_FRIEND_REQUEST_SENT)
                 .child(Constants.encodeEmail(mUserEmailString));
 
-        mGettAllFriendsRequestsReceivedReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_FRIEND_REQUEST_RECEIVED)
-        .child(Constants.encodeEmail(mUserEmailString));
+        mGetAllFriendsRequestsReceivedReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_FRIEND_REQUEST_RECEIVED)
+                .child(Constants.encodeEmail(mUserEmailString));
+
+        mGetAllCurrentUsersFriendsReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_USER_FRIENDS)
+                .child(Constants.encodeEmail(mUserEmailString));
 
         mGetAllFriendsRequestsSentListener = mLiveFriendServices.getFriendRequestsSent(mFindFriendsAdapter,this);
         mGetAllFriendsRequestsSentReference.addValueEventListener(mGetAllFriendsRequestsSentListener);
 
         mGetAllFriendsRequestsReceivedListener = mLiveFriendServices.getFriendRequestsReceived(mFindFriendsAdapter);
-        mGettAllFriendsRequestsReceivedReference.addValueEventListener(mGetAllFriendsRequestsReceivedListener);
+        mGetAllFriendsRequestsReceivedReference.addValueEventListener(mGetAllFriendsRequestsReceivedListener);
+
+        mGetAllCurrentUsersFriendsListener = mLiveFriendServices.getAllCurrentUsersFriendMap(mFindFriendsAdapter);
+        mGetAllCurrentUsersFriendsReference.addValueEventListener(mGetAllCurrentUsersFriendsListener);
+
 
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setAdapter(mFindFriendsAdapter);
@@ -234,7 +243,11 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
         }
 
         if(mGetAllFriendsRequestsReceivedListener != null){
-            mGettAllFriendsRequestsReceivedReference.removeEventListener(mGetAllFriendsRequestsReceivedListener);
+            mGetAllFriendsRequestsReceivedReference.removeEventListener(mGetAllFriendsRequestsReceivedListener);
+        }
+
+        if(mGetAllCurrentUsersFriendsListener != null){
+            mGetAllCurrentUsersFriendsReference.removeEventListener(mGetAllCurrentUsersFriendsListener);
         }
     }
 

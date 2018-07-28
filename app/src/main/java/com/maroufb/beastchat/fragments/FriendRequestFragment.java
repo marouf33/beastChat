@@ -87,7 +87,7 @@ public class FriendRequestFragment extends BaseFragment implements FriendRequest
         mGetAllUsersFriendRequestsReference = FirebaseDatabase.getInstance().getReference()
                 .child(Constants.FIREBASE_PATH_FRIEND_REQUEST_RECEIVED).child(Constants.encodeEmail(mUserEmailString));
 
-        mGetAllUsersFriendRequestsListener = mLiveFriendServices.gettAllFriendRequests(adapter,mRecyclerView,mTextView);
+        mGetAllUsersFriendRequestsListener = mLiveFriendServices.getAllFriendRequests(adapter,mRecyclerView,mTextView);
         mGetAllUsersFriendRequestsReference.addValueEventListener(mGetAllUsersFriendRequestsListener);
         mRecyclerView.setAdapter(adapter);
 
