@@ -12,6 +12,7 @@ import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.fragments.FindFriendsFragment;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
 import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
+import com.maroufb.beastchat.views.userFriendViews.UserFriendAdapter;
 
 import org.json.JSONObject;
 
@@ -37,6 +38,35 @@ public class LiveFriendServices {
         if(mLiveFriendServices == null)
             mLiveFriendServices = new LiveFriendServices();
         return mLiveFriendServices;
+    }
+
+    public ValueEventListener getAllFriends(final UserFriendAdapter adapter, final TextView textView, final RecyclerView recyclerView){
+        final List<User> userList = new ArrayList<>();
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                userList.clear();
+                for(DataSnapshot snapshot:dataSnapshot.getChildren()){
+                    User user = snapshot.getValue(User.class);
+                    userList.add(user);
+                }
+
+                if(userList.isEmpty()){
+                    recyclerView.setVisibility(View.GONE);
+                    textView.setVisibility(View.VISIBLE);
+                }else{
+                    textView.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.VISIBLE);
+              }
+                adapter.setUsers(userList);
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
     }
 
     public ValueEventListener getAllCurrentUsersFriendMap(final FindFriendsAdapter adapter){

@@ -45,16 +45,16 @@ public class FindFriendsViewHolder extends RecyclerView.ViewHolder {
 
         if(Constants.isIncludedInMap(friendRequestSentMap,user)){
             mUserStatus.setVisibility(View.VISIBLE);
-            mUserStatus.setText("Friend Request Sent");
+            mUserStatus.setText("Friend Request Sent!");
             mAddFriend.setImageResource(R.mipmap.ic_cancel_request);
             mAddFriend.setVisibility(View.VISIBLE);
         }else if(Constants.isIncludedInMap(friendRequestReceivedMap,user)){
             mAddFriend.setVisibility(View.GONE);
-            mUserStatus.setText("This User Has Requested You");
+            mUserStatus.setText("This User Has Requested You!");
             mUserStatus.setVisibility(View.VISIBLE);
         }else if(Constants.isIncludedInMap(currentUsersFriendMap,user)){
             mUserStatus.setVisibility(View.VISIBLE);
-            mUserStatus.setText("Already a friend");
+            mUserStatus.setText("Already a friend!");
             mAddFriend.setVisibility(View.GONE);
         }else {
             mUserStatus.setVisibility(View.GONE);
