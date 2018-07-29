@@ -58,6 +58,8 @@ function logUserIn(socket,io){
                     photo:userPic,
                     displayName:userName
                   };
+                  
+                  userRef.child('hasLoggedIn').set(true);
                   io.to(id).emit('token',{token});
                 }
               });

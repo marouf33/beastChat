@@ -16,7 +16,12 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.fragments.InboxFragment;
 import com.maroufb.beastchat.utils.Constants;
@@ -43,6 +48,22 @@ public class InboxActivity extends BaseFragmentActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         configureGoogleSignIn();
+
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnSuccessListener( new OnSuccessListener<InstanceIdResult>() {
+                    @Override
+                    public void onSuccess(InstanceIdResult instanceIdResult) {
+                        String deviceToken = instanceIdResult.getToken();
+                        SharedPreferences sharedPreferences = getSharedPreferences(Constants.USER_INFO_PREFERENCE, Context.MODE_PRIVATE);
+                        String userEmail = sharedPreferences.getString(Constants.USER_EMAIL,"");
+                        if(deviceToken != null &&! userEmail.equals("")){
+                            DatabaseReference tokenReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_USER_TOKEN)
+                                    .child(Constants.encodeEmail(userEmail));
+                            tokenReference.child("token").setValue(deviceToken);
+                        }
+                    }
+                });
+
     }
 
     // This method configures Google SignIn

@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.activities.InboxActivity;
 import com.maroufb.beastchat.utils.Constants;
@@ -168,7 +169,12 @@ public class LiveAccountServices {
                                     }
                                 }
                             }
+
                         });
+                        FirebaseInstanceId.getInstance().deleteInstanceId();
+                        FirebaseInstanceId.getInstance().getInstanceId();
+
+                        FirebaseAuth.getInstance().signOut();
                         return SERVER_SUCCESS;
 
 
@@ -182,7 +188,7 @@ public class LiveAccountServices {
 
     }
 
-    public Disposable sendLogingInfo(final EditText userEmailEt, final EditText userPasswordEt, final Socket socket
+    public Disposable sendLoginInfo(final EditText userEmailEt, final EditText userPasswordEt, final Socket socket
             , final BaseFragmentActivity activity , final ProgressBar progressBar){
         List<String> userDetails = new ArrayList<>();
         userDetails.add(userEmailEt.getText().toString());
@@ -226,8 +232,10 @@ public class LiveAccountServices {
                                     }
                                 });
 
+                        FirebaseInstanceId.getInstance().deleteInstanceId();
+                        FirebaseInstanceId.getInstance().getInstanceId();
 
-
+                        FirebaseAuth.getInstance().signOut();
                         return USER_NO_ERRORS;
 
                     }

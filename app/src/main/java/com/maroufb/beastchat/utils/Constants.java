@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 public class Constants {
 
-    public static final String IP_LOCAL_HOST = "http://10.0.0.10:4000";
+    public static final String IP_LOCAL_HOST = "http://172.16.1.34:4000";
 
     public static final String USER_INFO_PREFERENCE = "USER_INFO_PREFERENCE";
     public static final String USER_EMAIL = "USER_EMAIL";
@@ -26,6 +26,8 @@ public class Constants {
     public static final String FIREBASE_PATH_FRIEND_REQUEST_RECEIVED = "friendRequestsReceived";
 
     public static final String FIREBASE_PATH_USER_FRIENDS = "userFriends";
+
+    public static final String FIREBASE_PATH_USER_TOKEN = "userToken";
 
     public static String encodeEmail(String email){
         return email.replace(".",",");

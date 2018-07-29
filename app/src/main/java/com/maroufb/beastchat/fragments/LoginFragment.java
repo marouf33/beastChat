@@ -146,7 +146,7 @@ public class LoginFragment extends BaseFragment {
 
     @OnClick(R.id.fragment_login_loginButton)
     public void setLoginButton(){
-        mCompositeDisposable.add(mLiveAccountServices.sendLogingInfo(mUserEmailEt,mUserPasswordEt,mSocket,mActivity,mProgressBar));
+        mCompositeDisposable.add(mLiveAccountServices.sendLoginInfo(mUserEmailEt,mUserPasswordEt,mSocket,mActivity,mProgressBar));
     }
 
     @OnClick(R.id.activity_login_facebook_button)

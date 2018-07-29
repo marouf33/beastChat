@@ -215,7 +215,7 @@ public class FindFriendsFragment extends BaseFragment implements FindFriendsAdap
                 mAllUsers.clear();
                 for (DataSnapshot snapshot: dataSnapshot.getChildren()){
                     User user = snapshot.getValue(User.class);
-                    if(!user.getEmail().equals(mUserEmailString)){
+                    if(!user.getEmail().equals(mUserEmailString) && user.isHasLoggedIn()){
                         mAllUsers.add(user);
                     }
                 }
