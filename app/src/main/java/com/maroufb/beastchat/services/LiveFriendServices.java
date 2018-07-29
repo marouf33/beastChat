@@ -13,6 +13,7 @@ import com.maroufb.beastchat.fragments.FindFriendsFragment;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
 import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
 import com.maroufb.beastchat.views.userFriendViews.UserFriendAdapter;
+import com.roughike.bottombar.BottomBar;
 
 import org.json.JSONObject;
 
@@ -235,6 +236,32 @@ public class LiveFriendServices {
                 }
 
                 adapter.setmFriendRequestReceivedMap(userHashMap);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+    }
+
+    public ValueEventListener getFriendRequestBottom(final BottomBar bottomBar, final int tagId){
+        final List<User> users = new ArrayList<>();
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                users.clear();
+
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()){
+                    User user = snapshot.getValue(User.class);
+                    users.add(user);
+                }
+
+                if(!users.isEmpty()){
+                    bottomBar.getTabWithId(tagId).setBadgeCount(users.size());
+                }else {
+                    bottomBar.getTabWithId(tagId).removeBadge();
+                }
             }
 
             @Override

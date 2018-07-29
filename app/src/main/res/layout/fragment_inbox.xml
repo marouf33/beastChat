@@ -25,6 +25,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:bb_tabXmlResource="@xml/bottombar_tabs"
+        app:bb_badgesHideWhenActive="false"
         />
 
 </android.support.constraint.ConstraintLayout>
