@@ -5,6 +5,10 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var admin = require("firebase-admin");
 
+var FCM = require('fcm-push');
+var serverKey = 'AAAAbIUvy1o:APA91bGHEYxhcIMnyOqvlLNuDUSwjdtdp0zSbkTmib0NCTtb_gvJDE0vdHoTIK3lhTqU1u7zEA1J8tgrE8vYwqoh3MGiTyVRV_mK6lS5DnQOmmWXDQ_c4YUyzvNVKgOsfSSDOOMq6y3022jHaNtjHqsJaIgLGm51Xw';
+var fcm = new FCM(serverKey);
+
 var userFriendRequests = (io) =>{
   io.on('connection', (socket)=>{
     console.log(`Client ${socket.id} is connected to friend services!`);
@@ -74,6 +78,24 @@ function sendOrDeleteFriendRequest(socket,io){
                 });
             });
 
+            var tokenReference = db.ref('userToken');
+            var friendToken = tokenReference.child(encodeEmail(friendEmail));
+
+            friendToken.once('value',(snapshot)=>{
+              var message = {
+                to:snapshot.val().token,
+                data:{
+                  title: 'Beast Chat',
+                  body: `Friend Request from ${userEmail}`
+                }
+              };
+            fcm.send(message)
+              .then((response)=>{
+                console.log('Message sent!');
+              }).catch((err)=>{
+                console.log(err);
+              });
+            });
 
         }else{
             friendRef.remove();
