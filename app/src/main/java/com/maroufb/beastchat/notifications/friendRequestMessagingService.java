@@ -60,7 +60,7 @@ public class friendRequestMessagingService extends FirebaseMessagingService {
                 new NotificationCompat.Builder(this,"Beast Notifications")
                         .setDefaults(Notification.DEFAULT_ALL)
                         .setWhen(System.currentTimeMillis())
-                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setSmallIcon(R.drawable.ic_messages)
                         .setContentTitle(title)
                         .setContentText(body)
                         .setVibrate(pattern)
