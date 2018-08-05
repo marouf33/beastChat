@@ -1,5 +1,6 @@
 package com.maroufb.beastchat.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,9 +17,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
+import com.maroufb.beastchat.activities.MessagesActivity;
 import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
 import com.maroufb.beastchat.views.userFriendViews.UserFriendAdapter;
+
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -80,6 +84,13 @@ public class UserFriendsFragment extends BaseFragment implements UserFriendAdapt
 
     @Override
     public void OnUserClicked(User user) {
+        ArrayList<String> friendDetails = new ArrayList<>();
+        friendDetails.add(user.getEmail());
+        friendDetails.add(user.getUserPicture());
+        friendDetails.add(user.getUserName());
+        Intent intent = MessagesActivity.newInstance(friendDetails,getActivity());
+        startActivity(intent);
+        getActivity().overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
 
     }
 }
