@@ -15,6 +15,7 @@ import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
 import com.maroufb.beastchat.views.userFriendViews.UserFriendAdapter;
 import com.roughike.bottombar.BottomBar;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class LiveFriendServices {
             mLiveFriendServices = new LiveFriendServices();
         return mLiveFriendServices;
     }
+
 
     public ValueEventListener getAllFriends(final UserFriendAdapter adapter, final TextView textView, final RecyclerView recyclerView){
         final List<User> userList = new ArrayList<>();
@@ -118,6 +120,51 @@ public class LiveFriendServices {
 
             }
         };
+    }
+
+    public Disposable sendMessage(final Socket socket, String messageSenderEmail, String messageSenderPicture, String messageText ){
+        List<String> details = new ArrayList<>();
+        details.add(messageSenderEmail);
+        details.add(messageSenderPicture);
+        details.add(messageText);
+
+        Observable<List<String>> listObservable = Observable.just(details);
+
+        return  listObservable
+                .subscribeOn(Schedulers.io())
+                .map(new Function<List<String>, Integer>() {
+                    @Override
+                    public Integer apply(List<String> strings) throws Exception {
+                        JSONObject sendData = new JSONObject();
+                        try {
+                            sendData.put("senderEmail", strings.get(0));
+                            sendData.put("senderPicture", strings.get(1));
+                            sendData.put("messageText", strings.get(2));
+                            socket.emit("details", sendData);
+                            return SERVER_SUCCESS;
+                        }catch (JSONException e){
+                            e.printStackTrace();
+                            return SERVER_FAILURE;
+                        }
+
+                    }
+                }).subscribeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>(){
+                    @Override
+                    public void onNext(Integer integer) {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     public Disposable approveDeclineFriendRequest(final Socket socket, String userEmail, String friendEmail, String requestCode){

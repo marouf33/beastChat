@@ -29,6 +29,10 @@ public class Constants {
 
     public static final String FIREBASE_PATH_USER_TOKEN = "userToken";
 
+    public static final String FIREBASE_PATH_USER_MESSAGES = "userMessages";
+
+    public static final String FIREBASE_PATH_USER_NEW_MESSAGES = "userNewMessages";
+
     public static String encodeEmail(String email){
         return email.replace(".",",");
     }
