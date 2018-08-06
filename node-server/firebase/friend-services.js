@@ -12,11 +12,35 @@ var fcm = new FCM(serverKey);
 var userFriendRequests = (io) =>{
   io.on('connection', (socket)=>{
     console.log(`Client ${socket.id} is connected to friend services!`);
+
+    sendMessage(socket,io);
     detectDisconnection(socket,io);
     sendOrDeleteFriendRequest(socket,io);
     approveOrDeclineFriendRequest(socket,io);
   });
 };
+
+function sendMessage(socket,io){
+  socket.on('details',(data)=>{
+    var db = admin.database();
+    var friendMessageRef = db.ref('userMessages').child(encodeEmail(data.friendEmail))
+    .child(encodeEmail(data.senderEmail)).push();
+
+    var newFriendMessagesRef = db.ref('newUserMessages').child(encodeEmail(data.friendEmail))
+    .child(friendMessageRef.key);
+
+    var message = {
+      messageId: friendMessageRef.key,
+      messageText: data.messageText,
+      messageSenderEmail: data.senderEmail,
+      messageSenderPicture: data.senderPicture
+    };
+
+    friendMessageRef.set(message);
+    newFriendMessagesRef.set(message);
+
+  });
+}
 
 
 function approveOrDeclineFriendRequest(socket,io){

@@ -114,7 +114,8 @@ public class MessageFragment extends BaseFragment {
                     ,mUserEmailString,mSharedPreferences.getString(Constants.USER_PICTURE,""));
             newMessageReference.setValue(message);
             mCompositeDisposable.add(mLiveFriendServices.sendMessage(mSocket,mUserEmailString,
-                    mSharedPreferences.getString(Constants.USER_PICTURE,""),mMessageBox.getText().toString()));
+                    mSharedPreferences.getString(Constants.USER_PICTURE,""),mMessageBox.getText().toString(),
+                    mFriendEmailString));
         }
     }
 

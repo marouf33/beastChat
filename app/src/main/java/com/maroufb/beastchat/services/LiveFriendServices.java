@@ -122,11 +122,14 @@ public class LiveFriendServices {
         };
     }
 
-    public Disposable sendMessage(final Socket socket, String messageSenderEmail, String messageSenderPicture, String messageText ){
+    public Disposable sendMessage(final Socket socket, String messageSenderEmail,
+                                  String messageSenderPicture, String messageText,
+                                  String friendEmail){
         List<String> details = new ArrayList<>();
         details.add(messageSenderEmail);
         details.add(messageSenderPicture);
         details.add(messageText);
+        details.add(friendEmail);
 
         Observable<List<String>> listObservable = Observable.just(details);
 
@@ -140,6 +143,7 @@ public class LiveFriendServices {
                             sendData.put("senderEmail", strings.get(0));
                             sendData.put("senderPicture", strings.get(1));
                             sendData.put("messageText", strings.get(2));
+                            sendData.put("friendEmail", strings.get(3));
                             socket.emit("details", sendData);
                             return SERVER_SUCCESS;
                         }catch (JSONException e){
