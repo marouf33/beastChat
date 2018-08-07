@@ -87,6 +87,8 @@ public class MessageFragment extends BaseFragment {
         mFriendNameString = friendDetails.get(2);
 
         mUserEmailString = mSharedPreferences.getString(Constants.USER_EMAIL,"");
+
+        mSocket.connect();
     }
 
     @Nullable
