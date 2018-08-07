@@ -3,6 +3,8 @@ package com.maroufb.beastchat.fragments;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,8 +19,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.maroufb.beastchat.Entities.Message;
 import com.maroufb.beastchat.R;
+import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
+import com.maroufb.beastchat.views.MessagesViews.MessagesAdapter;
 import com.squareup.picasso.Picasso;
 
 import java.net.URISyntaxException;
@@ -46,6 +50,9 @@ public class MessageFragment extends BaseFragment {
 
     @BindView(R.id.fragment_messages_sendButton)
     ImageView mSendMessage;
+
+    @BindView(R.id.fragment_messages_recyclerView)
+    RecyclerView mMessagesRecyclerView;
 
     private Unbinder mUnbinder;
 
@@ -100,8 +107,16 @@ public class MessageFragment extends BaseFragment {
         Picasso.get().load(mFriendPictureString).into(mFriendPicture);
         mfriendName.setText(mFriendNameString);
 
+        MessagesAdapter adapter = new MessagesAdapter((BaseFragmentActivity) getActivity(),mUserEmailString);
+        mMessagesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
         mGetAllMessagesReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_USER_MESSAGES)
                 .child(Constants.encodeEmail(mUserEmailString)).child(Constants.encodeEmail(mFriendEmailString));
+
+        mGetAllMessagesListener = mLiveFriendServices.getAllMessages(mMessagesRecyclerView,mfriendName,mFriendPicture,adapter);
+        mGetAllMessagesReference.addValueEventListener(mGetAllMessagesListener);
+        mMessagesRecyclerView.setAdapter(adapter);
+
         return rootView;
     }
 
@@ -125,6 +140,10 @@ public class MessageFragment extends BaseFragment {
     public void onDestroyView() {
         super.onDestroyView();
         mUnbinder.unbind();
+
+        if(mGetAllMessagesListener != null){
+            mGetAllMessagesReference.removeEventListener(mGetAllMessagesListener);
+        }
     }
 
     @Override

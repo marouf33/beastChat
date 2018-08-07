@@ -5,6 +5,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent"
     >
+    
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/fragment_messages_recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/fragment_messages_bottom_linearLayout"/>
 
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/fragment_messages_friendPicture"
@@ -19,6 +26,7 @@
         app:riv_border_width="2dip"
         app:riv_border_color="#333333"
         app:riv_oval="true"
+        android:visibility="gone"
         />
 
     <TextView
@@ -30,7 +38,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:textSize="24sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        android:visibility="gone"/>
 
     <LinearLayout
         android:id="@+id/fragment_messages_bottom_linearLayout"

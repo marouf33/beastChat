@@ -3,15 +3,18 @@ package com.maroufb.beastchat.services;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.maroufb.beastchat.Entities.Message;
 import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.fragments.FindFriendsFragment;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
 import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
+import com.maroufb.beastchat.views.MessagesViews.MessagesAdapter;
 import com.maroufb.beastchat.views.userFriendViews.UserFriendAdapter;
 import com.roughike.bottombar.BottomBar;
 
@@ -113,6 +116,37 @@ public class LiveFriendServices {
 
                 }
                 adapter.setUsers(users);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+    }
+
+    public ValueEventListener getAllMessages(final RecyclerView recyclerView, final TextView textView, final ImageView imageView,
+                                             final MessagesAdapter adapter){
+        final List<Message> messages = new ArrayList<>();
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                messages.clear();
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()){
+                    Message message = snapshot.getValue(Message.class);
+                    messages.add(message);
+                }
+
+                if(messages.isEmpty()){
+                    imageView.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.GONE);
+                }else{
+                    imageView.setVisibility(View.GONE);
+                    textView.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    adapter.setMessages(messages);
+                }
             }
 
             @Override
