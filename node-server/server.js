@@ -26,6 +26,10 @@ var friendRequests = require('./firebase/friend-services');
 accountRequests.userAccountRequests(io);
 friendRequests.userFriendRequests(io);
 
-http.listen(4000,()=>{
-  console.log('Server is listening on port 4000');
+http.listen(process.env.PORT || 4000, process.env.IP || "0.0.0.0", function(){
+ 
+ var addr = http.address();
+
+ console.log("Chat server listening at", addr.address + ":" + addr.port);
+
 });

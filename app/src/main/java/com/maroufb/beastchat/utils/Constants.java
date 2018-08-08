@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 public class Constants {
 
-    public static final String IP_LOCAL_HOST = "http://172.16.1.34:4000";
+    public static final String IP_LOCAL_HOST = "https://beastchat-marouf33.c9users.io";
 
     public static final String USER_INFO_PREFERENCE = "USER_INFO_PREFERENCE";
     public static final String USER_EMAIL = "USER_EMAIL";
