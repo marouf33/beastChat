@@ -9,9 +9,11 @@ import android.widget.TextView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.maroufb.beastchat.Entities.ChatRoom;
 import com.maroufb.beastchat.Entities.Message;
 import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.fragments.FindFriendsFragment;
+import com.maroufb.beastchat.views.ChatRoomAdapter;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
 import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
 import com.maroufb.beastchat.views.MessagesViews.MessagesAdapter;
@@ -43,6 +45,35 @@ public class LiveFriendServices {
         if(mLiveFriendServices == null)
             mLiveFriendServices = new LiveFriendServices();
         return mLiveFriendServices;
+    }
+
+    public ValueEventListener getAllChatRooms(final RecyclerView recyclerView, final TextView textView,
+                                              final ChatRoomAdapter adapter){
+        final List<ChatRoom> chatRooms = new ArrayList<>();
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                chatRooms.clear();
+                for(DataSnapshot snapshot: dataSnapshot.getChildren()){
+                    ChatRoom chatRoom = snapshot.getValue(ChatRoom.class);
+                    chatRooms.add(chatRoom);
+                }
+                if(chatRooms.isEmpty()){
+                    recyclerView.setVisibility(View.GONE);
+                    textView.setVisibility(View.VISIBLE);
+                }else{
+                    recyclerView.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.GONE);
+                    adapter.setChatRooms(chatRooms);
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
     }
 
 
