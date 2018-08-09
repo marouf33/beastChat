@@ -1,5 +1,6 @@
 package com.maroufb.beastchat.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -70,6 +72,8 @@ public class MessageFragment extends BaseFragment {
 
     private PublishSubject<String> mMessageSubject;
 
+    private MessagesAdapter mMessagesAdapter;
+
     private String mFriendEmailString;
     private String mFriendPictureString;
     private String mFriendNameString;
@@ -120,15 +124,15 @@ public class MessageFragment extends BaseFragment {
         Picasso.get().load(mFriendPictureString).into(mFriendPicture);
         mfriendName.setText(mFriendNameString);
 
-        MessagesAdapter adapter = new MessagesAdapter((BaseFragmentActivity) getActivity(),mUserEmailString);
+         mMessagesAdapter = new MessagesAdapter((BaseFragmentActivity) getActivity(),mUserEmailString);
         mMessagesRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         mGetAllMessagesReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_USER_MESSAGES)
                 .child(Constants.encodeEmail(mUserEmailString)).child(Constants.encodeEmail(mFriendEmailString));
 
-        mGetAllMessagesListener = mLiveFriendServices.getAllMessages(mMessagesRecyclerView,mfriendName,mFriendPicture,adapter);
+        mGetAllMessagesListener = mLiveFriendServices.getAllMessages(mMessagesRecyclerView,mfriendName,mFriendPicture,mMessagesAdapter);
         mGetAllMessagesReference.addValueEventListener(mGetAllMessagesListener);
-        mMessagesRecyclerView.setAdapter(adapter);
+        mMessagesRecyclerView.setAdapter(mMessagesAdapter);
 
         mUserChatRoomsReference = FirebaseDatabase.getInstance().getReference()
                 .child(Constants.FIREBASE_PATH_USER_CHAT_ROOMS)
@@ -146,13 +150,26 @@ public class MessageFragment extends BaseFragment {
         if(mMessageBox.getText().toString().trim().equals("")){
             Toast.makeText(getActivity(),"Message Can't Be Blank", Toast.LENGTH_SHORT).show();
         }else {
+
+            ChatRoom chatRoom = new ChatRoom(mFriendPictureString,mFriendNameString,
+                    mFriendEmailString,mMessageBox.getText().toString(),mUserEmailString,
+                    true,true);
+            mUserChatRoomsReference.child(Constants.encodeEmail(mFriendEmailString)).setValue(chatRoom);
+
             DatabaseReference newMessageReference = mGetAllMessagesReference.push();
             Message message = new Message(newMessageReference.getKey(), mMessageBox.getText().toString()
                     ,mUserEmailString,mSharedPreferences.getString(Constants.USER_PICTURE,""));
             newMessageReference.setValue(message);
             mCompositeDisposable.add(mLiveFriendServices.sendMessage(mSocket,mUserEmailString,
                     mSharedPreferences.getString(Constants.USER_PICTURE,""),mMessageBox.getText().toString(),
-                    mFriendEmailString));
+                    mFriendEmailString,mSharedPreferences.getString(Constants.USER_NAME,"")));
+
+            mMessageBox.setText("");
+
+
+
+            mMessagesRecyclerView.scrollToPosition(mMessagesAdapter.getMessages().size() - 1);
+
         }
     }
 

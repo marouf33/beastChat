@@ -29,6 +29,9 @@ function sendMessage(socket,io){
     var newFriendMessagesRef = db.ref('newUserMessages').child(encodeEmail(data.friendEmail))
     .child(friendMessageRef.key);
 
+    var chatRoomRef = db.ref('userChatRooms').child(encodeEmail(data.friendEmail))
+    .child(encodeEmail(data.senderEmail));
+
     var message = {
       messageId: friendMessageRef.key,
       messageText: data.messageText,
@@ -36,9 +39,22 @@ function sendMessage(socket,io){
       messageSenderPicture: data.senderPicture
     };
 
+    var chatRoom = {
+      friendPicture: data.senderPicture,
+      friendName: data.senderName,
+      friendEmail: data.senderEmail,
+      lastMessage: data.messageText,
+      lastMessageSenderEmail: data.senderEmail,
+      lastMessageRead: false,
+      sentLastMessage: true
+    };
+
+
     friendMessageRef.set(message);
     newFriendMessagesRef.set(message);
 
+    chatRoomRef.set(chatRoom);
+    
   });
 }
 

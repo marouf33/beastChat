@@ -40,8 +40,8 @@ public class ChatRoomViewHolder extends RecyclerView.ViewHolder {
         mUserName.setText(chatRoom.getFriendName());
 
         String lastMessageSent = chatRoom.getLastMessage();
-        if(lastMessageSent.length() > 80){
-            lastMessageSent = lastMessageSent.substring(0,80) + " ...";
+        if(lastMessageSent.length() > 30){
+            lastMessageSent = lastMessageSent.substring(0,30) + " ...";
         }
 
         if(!chatRoom.isSentLastMessage()){

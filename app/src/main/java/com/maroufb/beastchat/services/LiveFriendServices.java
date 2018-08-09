@@ -189,12 +189,13 @@ public class LiveFriendServices {
 
     public Disposable sendMessage(final Socket socket, String messageSenderEmail,
                                   String messageSenderPicture, String messageText,
-                                  String friendEmail){
+                                  String friendEmail, String messageSenderName){
         List<String> details = new ArrayList<>();
         details.add(messageSenderEmail);
         details.add(messageSenderPicture);
         details.add(messageText);
         details.add(friendEmail);
+        details.add(messageSenderName);
 
         Observable<List<String>> listObservable = Observable.just(details);
 
@@ -209,6 +210,7 @@ public class LiveFriendServices {
                             sendData.put("senderPicture", strings.get(1));
                             sendData.put("messageText", strings.get(2));
                             sendData.put("friendEmail", strings.get(3));
+                            sendData.put("senderName",strings.get(4));
                             socket.emit("details", sendData);
                             return SERVER_SUCCESS;
                         }catch (JSONException e){

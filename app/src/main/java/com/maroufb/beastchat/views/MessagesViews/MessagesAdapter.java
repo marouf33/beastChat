@@ -34,6 +34,10 @@ public class MessagesAdapter extends RecyclerView.Adapter {
         notifyDataSetChanged();
     }
 
+    public List<Message> getMessages() {
+        return mMessages;
+    }
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

@@ -114,6 +114,5 @@ public class InboxFragment extends BaseFragment implements ChatRoomAdapter.ChatR
         startActivity(intent);
         getActivity().overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
 
-
     }
 }
