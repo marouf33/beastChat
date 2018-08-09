@@ -1,5 +1,6 @@
 package com.maroufb.beastchat.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,12 +15,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.maroufb.beastchat.Entities.ChatRoom;
+import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
+import com.maroufb.beastchat.activities.MessagesActivity;
 import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
 import com.maroufb.beastchat.views.ChatRoomAdapter;
 import com.roughike.bottombar.BottomBar;
+
+import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -101,6 +106,14 @@ public class InboxFragment extends BaseFragment implements ChatRoomAdapter.ChatR
 
     @Override
     public void OnChatRoomClicked(ChatRoom chatRoom) {
+        ArrayList<String> friendDetails = new ArrayList<>();
+        friendDetails.add(chatRoom.getFriendEmail());
+        friendDetails.add(chatRoom.getFriendPicture());
+        friendDetails.add(chatRoom.getFriendName());
+        Intent intent = MessagesActivity.newInstance(friendDetails,getActivity());
+        startActivity(intent);
+        getActivity().overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
+
 
     }
 }

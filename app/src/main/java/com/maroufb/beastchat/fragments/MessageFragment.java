@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +19,7 @@ import android.widget.Toast;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.maroufb.beastchat.Entities.ChatRoom;
 import com.maroufb.beastchat.Entities.Message;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
@@ -27,11 +30,17 @@ import com.squareup.picasso.Picasso;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
@@ -59,6 +68,8 @@ public class MessageFragment extends BaseFragment {
     private Socket mSocket;
     private LiveFriendServices mLiveFriendServices;
 
+    private PublishSubject<String> mMessageSubject;
+
     private String mFriendEmailString;
     private String mFriendPictureString;
     private String mFriendNameString;
@@ -66,6 +77,8 @@ public class MessageFragment extends BaseFragment {
 
     private DatabaseReference mGetAllMessagesReference;
     private ValueEventListener mGetAllMessagesListener;
+
+    private DatabaseReference mUserChatRoomsReference;
 
     public static MessageFragment newInstance(ArrayList<String> friendDetails){
         Bundle arguments = new Bundle();
@@ -117,6 +130,13 @@ public class MessageFragment extends BaseFragment {
         mGetAllMessagesReference.addValueEventListener(mGetAllMessagesListener);
         mMessagesRecyclerView.setAdapter(adapter);
 
+        mUserChatRoomsReference = FirebaseDatabase.getInstance().getReference()
+                .child(Constants.FIREBASE_PATH_USER_CHAT_ROOMS)
+                .child(Constants.encodeEmail(mUserEmailString));
+
+        mCompositeDisposable.add(createChatRoomSubscription());
+        messageBoxListener();
+
         return rootView;
     }
 
@@ -134,6 +154,52 @@ public class MessageFragment extends BaseFragment {
                     mSharedPreferences.getString(Constants.USER_PICTURE,""),mMessageBox.getText().toString(),
                     mFriendEmailString));
         }
+    }
+
+    private Disposable createChatRoomSubscription(){
+        mMessageSubject = PublishSubject.create();
+        return mMessageSubject.debounce(200, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<String>(){
+                    @Override
+                    public void onNext(String message) {
+                        if(!message.isEmpty()){
+                            ChatRoom chatRoom = new ChatRoom(mFriendPictureString,mFriendNameString,
+                                    mFriendEmailString,message,mUserEmailString,true,false);
+                            mUserChatRoomsReference.child(Constants.encodeEmail(mFriendEmailString)).setValue(chatRoom);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+    }
+
+    private void messageBoxListener(){
+        mMessageBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                mMessageSubject.onNext(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
     @Override

@@ -45,11 +45,11 @@ public class ChatRoomViewHolder extends RecyclerView.ViewHolder {
         }
 
         if(!chatRoom.isSentLastMessage()){
-            lastMessageSent = lastMessageSent +"(Draft)";
+            lastMessageSent = lastMessageSent +" (Draft)";
         }
 
         if(chatRoom.getLastMessageSenderEmail().equals(currentUserEmail)){
-            lastMessageSent = "(Me) " + lastMessageSent;
+            lastMessageSent = "Me: " + lastMessageSent;
         }
 
         if(!chatRoom.isLastMessageRead()){
