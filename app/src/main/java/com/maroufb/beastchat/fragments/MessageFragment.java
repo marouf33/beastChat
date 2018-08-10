@@ -18,6 +18,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
@@ -83,6 +85,7 @@ public class MessageFragment extends BaseFragment {
     private ValueEventListener mGetAllMessagesListener;
 
     private DatabaseReference mUserChatRoomsReference;
+    private ValueEventListener mUserChatRoomLitener;
 
     public static MessageFragment newInstance(ArrayList<String> friendDetails){
         Bundle arguments = new Bundle();
@@ -136,9 +139,14 @@ public class MessageFragment extends BaseFragment {
 
         mUserChatRoomsReference = FirebaseDatabase.getInstance().getReference()
                 .child(Constants.FIREBASE_PATH_USER_CHAT_ROOMS)
-                .child(Constants.encodeEmail(mUserEmailString));
+                .child(Constants.encodeEmail(mUserEmailString))
+                .child(Constants.encodeEmail(mFriendEmailString));
+
+        mUserChatRoomLitener = getCurrentChatRoomListener();
+        mUserChatRoomsReference.addValueEventListener(mUserChatRoomLitener);
 
         mCompositeDisposable.add(createChatRoomSubscription());
+        mMessagesRecyclerView.scrollToPosition(mMessagesAdapter.getMessages().size() - 1);
         messageBoxListener();
 
         return rootView;
@@ -154,7 +162,7 @@ public class MessageFragment extends BaseFragment {
             ChatRoom chatRoom = new ChatRoom(mFriendPictureString,mFriendNameString,
                     mFriendEmailString,mMessageBox.getText().toString(),mUserEmailString,
                     true,true);
-            mUserChatRoomsReference.child(Constants.encodeEmail(mFriendEmailString)).setValue(chatRoom);
+            mUserChatRoomsReference.setValue(chatRoom);
 
             DatabaseReference newMessageReference = mGetAllMessagesReference.push();
             Message message = new Message(newMessageReference.getKey(), mMessageBox.getText().toString()
@@ -184,7 +192,7 @@ public class MessageFragment extends BaseFragment {
                         if(!message.isEmpty()){
                             ChatRoom chatRoom = new ChatRoom(mFriendPictureString,mFriendNameString,
                                     mFriendEmailString,message,mUserEmailString,true,false);
-                            mUserChatRoomsReference.child(Constants.encodeEmail(mFriendEmailString)).setValue(chatRoom);
+                            mUserChatRoomsReference.setValue(chatRoom);
                         }
                     }
 
@@ -219,6 +227,26 @@ public class MessageFragment extends BaseFragment {
         });
     }
 
+
+    public ValueEventListener getCurrentChatRoomListener(){
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                ChatRoom chatRoom = dataSnapshot.getValue(ChatRoom.class);
+                if(chatRoom != null){
+                    mUserChatRoomsReference
+                            .child("lastMessageRead")
+                            .setValue(true);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -226,6 +254,10 @@ public class MessageFragment extends BaseFragment {
 
         if(mGetAllMessagesListener != null){
             mGetAllMessagesReference.removeEventListener(mGetAllMessagesListener);
+        }
+
+        if(mUserChatRoomLitener != null){
+            mUserChatRoomsReference.removeEventListener(mUserChatRoomLitener);
         }
     }
 
