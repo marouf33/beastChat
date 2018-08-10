@@ -16,6 +16,7 @@ public class MessagesActivity extends BaseFragmentActivity {
     @Override
     Fragment createFragment() {
         ArrayList<String> friendDetails = getIntent().getStringArrayListExtra(EXTRA_FRIEND_DETAILS);
+        getSupportActionBar().setTitle(friendDetails.get(2));
         return MessageFragment.newInstance(friendDetails);
     }
 

@@ -60,6 +60,8 @@ public class InboxActivity extends BaseFragmentActivity {
                             DatabaseReference tokenReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_USER_TOKEN)
                                     .child(Constants.encodeEmail(userEmail));
                             tokenReference.child("token").setValue(deviceToken);
+
+                            getSupportActionBar().setTitle(sharedPreferences.getString(Constants.USER_NAME,"") + "'s Inbox");
                         }
                     }
                 });
@@ -102,6 +104,14 @@ public class InboxActivity extends BaseFragmentActivity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 finish();
+                break;
+
+            case R.id.action_create_new_message:
+                Intent friendsActivityIntent = new Intent(getApplication(),FriendsActivity.class);
+                startActivity(friendsActivityIntent);
+                overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
+                finish();
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
