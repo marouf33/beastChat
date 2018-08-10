@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_create_new_message"
         android:title="New Message"
-        app:showAsAction="never"
+        app:showAsAction="always"
         android:icon="@mipmap/ic_plus"/>
 
     <item

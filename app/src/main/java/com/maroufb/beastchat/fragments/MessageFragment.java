@@ -133,7 +133,7 @@ public class MessageFragment extends BaseFragment {
         mGetAllMessagesReference = FirebaseDatabase.getInstance().getReference().child(Constants.FIREBASE_PATH_USER_MESSAGES)
                 .child(Constants.encodeEmail(mUserEmailString)).child(Constants.encodeEmail(mFriendEmailString));
 
-        mGetAllMessagesListener = mLiveFriendServices.getAllMessages(mMessagesRecyclerView,mfriendName,mFriendPicture,mMessagesAdapter);
+        mGetAllMessagesListener = mLiveFriendServices.getAllMessages(mMessagesRecyclerView,mfriendName,mFriendPicture,mMessagesAdapter,mUserEmailString);
         mGetAllMessagesReference.addValueEventListener(mGetAllMessagesListener);
         mMessagesRecyclerView.setAdapter(mMessagesAdapter);
 

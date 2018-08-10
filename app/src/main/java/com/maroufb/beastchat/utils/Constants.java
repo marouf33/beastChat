@@ -31,7 +31,7 @@ public class Constants {
 
     public static final String FIREBASE_PATH_USER_MESSAGES = "userMessages";
 
-    public static final String FIREBASE_PATH_USER_NEW_MESSAGES = "userNewMessages";
+    public static final String FIREBASE_PATH_USER_NEW_MESSAGES = "newUserMessages";
 
     public static final String FIREBASE_PATH_USER_CHAT_ROOMS = "userChatRooms";
 

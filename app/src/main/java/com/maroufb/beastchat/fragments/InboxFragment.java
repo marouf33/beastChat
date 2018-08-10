@@ -50,6 +50,10 @@ public class InboxFragment extends BaseFragment implements ChatRoomAdapter.ChatR
     private DatabaseReference mUserChatRoomReference;
     private ValueEventListener mUserChatRoomListener;
 
+    private DatabaseReference mUsersNewMessagesReference;
+    private ValueEventListener mUsersNewMessagesListener;
+
+
     private String mUserEmailString;
 
 
@@ -77,6 +81,11 @@ public class InboxFragment extends BaseFragment implements ChatRoomAdapter.ChatR
         mUserChatRoomListener = mLiveFriendServices.getAllChatRooms(mRecyclerView,mTextView,adapter);
         mUserChatRoomReference.addValueEventListener(mUserChatRoomListener);
 
+        mUsersNewMessagesReference = FirebaseDatabase.getInstance().getReference()
+                .child(Constants.FIREBASE_PATH_USER_NEW_MESSAGES).child(Constants.encodeEmail(mUserEmailString));
+        mUsersNewMessagesListener = mLiveFriendServices.getAllNewMessages(mBottomBar,R.id.tab_messages);
+        mUsersNewMessagesReference.addValueEventListener(mUsersNewMessagesListener);
+
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setAdapter(adapter);
         return  rootView;
@@ -101,6 +110,10 @@ public class InboxFragment extends BaseFragment implements ChatRoomAdapter.ChatR
 
         if(mUserChatRoomListener != null){
             mUserChatRoomReference.removeEventListener(mUserChatRoomListener);
+        }
+
+        if(mUsersNewMessagesListener != null){
+            mUsersNewMessagesReference.removeEventListener(mUsersNewMessagesListener);
         }
     }
 

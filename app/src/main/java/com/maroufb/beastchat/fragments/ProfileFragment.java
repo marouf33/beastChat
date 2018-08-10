@@ -30,6 +30,10 @@ public class ProfileFragment extends BaseFragment {
     private DatabaseReference mAllFriendRequestReference;
     private ValueEventListener mAllFriendRequesListener;
 
+    private DatabaseReference mUsersNewMessagesReference;
+    private ValueEventListener mUsersNewMessagesListener;
+
+
     private String mUserEmailString;
 
     public static ProfileFragment newInstance(){return new ProfileFragment();}
@@ -46,6 +50,11 @@ public class ProfileFragment extends BaseFragment {
                 .child(Constants.FIREBASE_PATH_FRIEND_REQUEST_RECEIVED).child(Constants.encodeEmail(mUserEmailString));
         mAllFriendRequesListener = mLiveFriendServices.getFriendRequestBottom(mBottomBar,R.id.tab_friends);
         mAllFriendRequestReference.addValueEventListener(mAllFriendRequesListener);
+
+        mUsersNewMessagesReference = FirebaseDatabase.getInstance().getReference()
+                .child(Constants.FIREBASE_PATH_USER_NEW_MESSAGES).child(Constants.encodeEmail(mUserEmailString));
+        mUsersNewMessagesListener = mLiveFriendServices.getAllNewMessages(mBottomBar,R.id.tab_messages);
+        mUsersNewMessagesReference.addValueEventListener(mUsersNewMessagesListener);
         return rootView;
     }
 
@@ -63,6 +72,10 @@ public class ProfileFragment extends BaseFragment {
 
         if(mAllFriendRequesListener != null){
             mAllFriendRequestReference.removeEventListener(mAllFriendRequesListener);
+        }
+
+        if(mUsersNewMessagesListener != null){
+            mUsersNewMessagesReference.removeEventListener(mUsersNewMessagesListener);
         }
     }
 }

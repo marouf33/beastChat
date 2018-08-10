@@ -8,11 +8,14 @@ import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.maroufb.beastchat.Entities.ChatRoom;
 import com.maroufb.beastchat.Entities.Message;
 import com.maroufb.beastchat.Entities.User;
 import com.maroufb.beastchat.fragments.FindFriendsFragment;
+import com.maroufb.beastchat.utils.Constants;
 import com.maroufb.beastchat.views.ChatRoomAdapter;
 import com.maroufb.beastchat.views.FindFriendsViews.FindFriendsAdapter;
 import com.maroufb.beastchat.views.FriendRequestViews.FriendRequestAdapter;
@@ -45,6 +48,32 @@ public class LiveFriendServices {
         if(mLiveFriendServices == null)
             mLiveFriendServices = new LiveFriendServices();
         return mLiveFriendServices;
+    }
+
+
+    public ValueEventListener getAllNewMessages(final BottomBar bottomBar,final int tagId){
+        final List<Message> messages = new ArrayList<>();
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                messages.clear();
+
+                for(DataSnapshot snapshot:dataSnapshot.getChildren()){
+                    Message message = snapshot.getValue(Message.class);
+                    messages.add(message);
+                }
+
+                if(!messages.isEmpty()){
+                    bottomBar.getTabWithId(tagId).setBadgeCount(messages.size());
+                }else
+                    bottomBar.getTabWithId(tagId).removeBadge();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
     }
 
     public ValueEventListener getAllChatRooms(final RecyclerView recyclerView, final TextView textView,
@@ -157,14 +186,18 @@ public class LiveFriendServices {
     }
 
     public ValueEventListener getAllMessages(final RecyclerView recyclerView, final TextView textView, final ImageView imageView,
-                                             final MessagesAdapter adapter){
+                                             final MessagesAdapter adapter, final String usereMail){
         final List<Message> messages = new ArrayList<>();
         return new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 messages.clear();
+                DatabaseReference newMessagesReference = FirebaseDatabase.getInstance().getReference()
+                        .child(Constants.FIREBASE_PATH_USER_NEW_MESSAGES)
+                        .child(Constants.encodeEmail(usereMail));
                 for(DataSnapshot snapshot: dataSnapshot.getChildren()){
                     Message message = snapshot.getValue(Message.class);
+                    newMessagesReference.child(message.getMessageId()).removeValue();
                     messages.add(message);
                 }
 
