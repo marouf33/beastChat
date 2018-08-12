@@ -6,6 +6,8 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -14,6 +16,7 @@ import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
 import com.roughike.bottombar.BottomBar;
+import com.squareup.picasso.Picasso;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -22,6 +25,21 @@ import butterknife.Unbinder;
 public class ProfileFragment extends BaseFragment {
 
     @BindView(R.id.profile_bottombar)  BottomBar mBottomBar;
+
+    @BindView(R.id.fragment_profile_cameraPicture)
+    ImageView mCameraImage;
+
+    @BindView(R.id.fragment_profile_galleryPicture)
+    ImageView mGalleryImage;
+
+    @BindView(R.id.fragment_profile_user_picture)
+    ImageView mUserPicture;
+
+    @BindView(R.id.fragment_profile_userEmail)
+    TextView mUserEmail;
+
+    @BindView(R.id.fragment_profile_userName)
+    TextView mUserName;
 
     private Unbinder mUnbinder;
 
@@ -45,6 +63,12 @@ public class ProfileFragment extends BaseFragment {
         mUnbinder = ButterKnife.bind(this,rootView);
         mBottomBar.selectTabWithId(R.id.tab_profile);
         setupBottomBar(mBottomBar, 3);
+
+        Picasso.get()
+                .load(mSharedPreferences.getString(Constants.USER_PICTURE,""))
+                .into(mUserPicture);
+        mUserEmail.setText(mUserEmailString);
+        mUserName.setText(mSharedPreferences.getString(Constants.USER_NAME,""));
 
         mAllFriendRequestReference = FirebaseDatabase.getInstance().getReference()
                 .child(Constants.FIREBASE_PATH_FRIEND_REQUEST_RECEIVED).child(Constants.encodeEmail(mUserEmailString));

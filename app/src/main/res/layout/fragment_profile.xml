@@ -5,17 +5,72 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        android:id="@+id/profile_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Profile"
-        android:textSize="26sp"
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/fragment_profile_user_picture"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/fragment_profile_cameraPicture"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/profile_bottombar"
+        app:riv_corner_radius="30dip"
+        app:riv_border_width="2dip"
+        app:riv_border_color="#333333"
+        app:riv_oval="true"
+        app:layout_constraintVertical_chainStyle="packed"
         />
+
+    <ImageView
+        android:id="@+id/fragment_profile_cameraPicture"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:background="@drawable/friend_request_background"
+        app:layout_constraintTop_toBottomOf="@id/fragment_profile_user_picture"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/fragment_profile_galleryPicture"
+        app:layout_constraintBottom_toTopOf="@id/fragment_profile_userName"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        android:layout_marginEnd="5dp"
+        android:layout_marginTop="5dp"
+        android:src="@mipmap/ic_camera"/>
+
+    <ImageView
+        android:id="@+id/fragment_profile_galleryPicture"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:background="@drawable/friend_request_background"
+        app:layout_constraintTop_toBottomOf="@id/fragment_profile_user_picture"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/fragment_profile_cameraPicture"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:src="@mipmap/ic_photo"/>
+
+    <TextView
+        android:id="@+id/fragment_profile_userName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="test name"
+        app:layout_constraintTop_toBottomOf="@id/fragment_profile_cameraPicture"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/fragment_profile_userEmail"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"/>
+
+    <TextView
+        android:id="@+id/fragment_profile_userEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="test email"
+        app:layout_constraintTop_toBottomOf="@id/fragment_profile_userName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/profile_bottombar"
+        android:textSize="22sp"
+        android:textStyle="bold"/>
 
     <com.roughike.bottombar.BottomBar
         android:id="@+id/profile_bottombar"
