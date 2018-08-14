@@ -1,8 +1,14 @@
 package com.maroufb.beastchat.fragments;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +24,16 @@ import com.maroufb.beastchat.utils.Constants;
 import com.roughike.bottombar.BottomBar;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import butterknife.Unbinder;
+
+import static android.app.Activity.RESULT_OK;
 
 public class ProfileFragment extends BaseFragment {
 
@@ -53,6 +66,11 @@ public class ProfileFragment extends BaseFragment {
 
 
     private String mUserEmailString;
+
+    private final int REQUEST_CODE_CAMERA = 100;
+    private final int REQUEST_CODE_PICTURE = 101;
+
+    private Uri mTempUri;
 
     public static ProfileFragment newInstance(){return new ProfileFragment();}
 
@@ -87,6 +105,51 @@ public class ProfileFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         mLiveFriendServices = LiveFriendServices.getInstance();
         mUserEmailString = mSharedPreferences.getString(Constants.USER_EMAIL,"");
+    }
+
+    @OnClick(R.id.fragment_profile_galleryPicture)
+    public void setmGalleryImage(){
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/jpeg");
+        intent.putExtra(intent.EXTRA_LOCAL_ONLY,true);
+        startActivityForResult(Intent.createChooser(intent,"Choose Image With"),REQUEST_CODE_PICTURE);
+    }
+
+    @OnClick(R.id.fragment_profile_cameraPicture)
+    public void setCameraImage(){
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        mTempUri = Uri.fromFile(getOutputFile());
+        intent.putExtra(MediaStore.EXTRA_OUTPUT,mTempUri);
+        startActivityForResult(intent,REQUEST_CODE_CAMERA);
+
+    }
+
+    private static File getOutputFile(){
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES),"BeastChat");
+        if(!mediaStorageDir.exists()){
+            if(!mediaStorageDir.mkdir()){
+                return null;
+            }
+        }
+        String timeStamp = new SimpleDateFormat("yyyydd_HHmmss").format(new Date());
+        return new File(mediaStorageDir.getPath() + File.separator +
+        "IMG_" + timeStamp +".jpg");
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode == RESULT_OK) {
+            switch(resultCode){
+                case REQUEST_CODE_PICTURE:
+                    Uri selectedImageUri = data.getData();
+                    Log.i(ProfileFragment.class.getSimpleName(), selectedImageUri.toString());
+                    break;
+                case REQUEST_CODE_CAMERA:
+                    selectedImageUri = mTempUri;
+                    Log.i(ProfileFragment.class.getSimpleName(),selectedImageUri.toString());
+            }
+        }
     }
 
     @Override
