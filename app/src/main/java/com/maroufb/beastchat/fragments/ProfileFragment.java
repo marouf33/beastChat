@@ -36,6 +36,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -43,6 +44,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -86,6 +89,7 @@ public class ProfileFragment extends BaseFragment {
     private PermissionsManager mPermissionsManager;
 
     private BaseFragmentActivity mActivity;
+    private Socket mSocket;
 
     public static ProfileFragment newInstance(){return new ProfileFragment();}
 
@@ -121,6 +125,20 @@ public class ProfileFragment extends BaseFragment {
         mLiveFriendServices = LiveFriendServices.getInstance();
         mUserEmailString = mSharedPreferences.getString(Constants.USER_EMAIL,"");
         mPermissionsManager = new PermissionsManager(this);
+
+        try {
+            mSocket = IO.socket(Constants.IP_LOCAL_HOST);
+        } catch (URISyntaxException e) {
+            Log.i(RegisterFragment.class.getSimpleName(),e.getMessage());
+            Toast.makeText(getActivity(),"Can't connect to the server",Toast.LENGTH_SHORT).show();
+        }
+        mSocket.connect();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSocket.disconnect();
     }
 
     @OnClick(R.id.fragment_profile_galleryPicture)
@@ -201,7 +219,7 @@ public class ProfileFragment extends BaseFragment {
 
         mCompositeDisposable.add(LiveAccountServices.getInstance().changeProfilePhoto(
                 storageReference,pictureUri,mActivity,mUserEmailString,mUserPicture,
-                mSharedPreferences
+                mSharedPreferences,mSocket
         ));
     }
 

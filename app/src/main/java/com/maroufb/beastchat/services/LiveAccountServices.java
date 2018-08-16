@@ -69,8 +69,9 @@ public class LiveAccountServices {
     }
 
     public Disposable changeProfilePhoto(final StorageReference storageReference, Uri pictureUri,
-                                         final BaseFragmentActivity activity, String currentUserEmail,
-                                         final ImageView imageView, final SharedPreferences sharedPreferences){
+                                         final BaseFragmentActivity activity, final String currentUserEmail,
+                                         final ImageView imageView, final SharedPreferences sharedPreferences,
+                                         final Socket socket){
         Observable<Uri> uriObservable = Observable.just(pictureUri);
         return uriObservable.subscribeOn(Schedulers.io())
                 .map(new Function<Uri, byte[]>() {
@@ -91,10 +92,18 @@ public class LiveAccountServices {
                         UploadTask uploadTask = storageReference.putBytes(bytes);
                         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                             @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            public void onSuccess(final UploadTask.TaskSnapshot taskSnapshot) {
                                 taskSnapshot.getMetadata().getReference().getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                     @Override
                                     public void onSuccess(Uri uri) {
+                                        JSONObject sendData = new JSONObject();
+                                        try {
+                                            sendData.put("email", currentUserEmail);
+                                            sendData.put("picUrl", uri.toString());
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                        socket.emit("userUpdatedPicture", sendData);
                                         sharedPreferences.edit().putString(Constants.USER_PICTURE,
                                                 uri.toString()).apply();
                                         Picasso.get().load(uri.toString())
