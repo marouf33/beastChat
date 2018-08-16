@@ -1,29 +1,40 @@
 package com.maroufb.beastchat.services;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.activities.InboxActivity;
 import com.maroufb.beastchat.utils.Constants;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +66,56 @@ public class LiveAccountServices {
             mLiveAccountServices = new LiveAccountServices();
         }
         return mLiveAccountServices;
+    }
+
+    public Disposable changeProfilePhoto(final StorageReference storageReference, Uri pictureUri,
+                                         final BaseFragmentActivity activity, String currentUserEmail,
+                                         final ImageView imageView, final SharedPreferences sharedPreferences){
+        Observable<Uri> uriObservable = Observable.just(pictureUri);
+        return uriObservable.subscribeOn(Schedulers.io())
+                .map(new Function<Uri, byte[]>() {
+                    @Override
+                    public byte[] apply(Uri uri) throws Exception {
+                        Bitmap bitmap = MediaStore.Images.Media.
+                                getBitmap(activity.getContentResolver(),uri);
+                        int outputHeight = (int) (bitmap.getHeight() * (512.0/bitmap.getWidth()));
+                        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap,512,outputHeight,true);
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        scaledBitmap.compress(Bitmap.CompressFormat.JPEG,50,byteArrayOutputStream);
+                        return byteArrayOutputStream.toByteArray();
+                    }
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<byte[]>(){
+                    @Override
+                    public void onNext(byte[] bytes) {
+                        UploadTask uploadTask = storageReference.putBytes(bytes);
+                        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                taskSnapshot.getMetadata().getReference().getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                    @Override
+                                    public void onSuccess(Uri uri) {
+                                        sharedPreferences.edit().putString(Constants.USER_PICTURE,
+                                                uri.toString()).apply();
+                                        Picasso.get().load(uri.toString())
+                                                .into(imageView);
+                                    }
+                                });
+
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     public Disposable getAuthToken(JSONObject data, final BaseFragmentActivity activity, final SharedPreferences sharedPreferences

@@ -1,5 +1,6 @@
 package com.maroufb.beastchat.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -21,9 +22,12 @@ import android.widget.Toast;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.BaseFragmentActivity;
 import com.maroufb.beastchat.activities.ProfileActivity;
+import com.maroufb.beastchat.services.LiveAccountServices;
 import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
 import com.maroufb.beastchat.utils.PermissionsManager;
@@ -80,6 +84,8 @@ public class ProfileFragment extends BaseFragment {
     private Uri mTempUri;
 
     private PermissionsManager mPermissionsManager;
+
+    private BaseFragmentActivity mActivity;
 
     public static ProfileFragment newInstance(){return new ProfileFragment();}
 
@@ -175,16 +181,28 @@ public class ProfileFragment extends BaseFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == RESULT_OK) {
-            switch(resultCode){
+            switch(requestCode){
                 case REQUEST_CODE_PICTURE:
                     Uri selectedImageUri = data.getData();
-                    Log.i(ProfileFragment.class.getSimpleName(), selectedImageUri.toString());
+                    applyPictureChange(selectedImageUri);
                     break;
                 case REQUEST_CODE_CAMERA:
                     selectedImageUri = mTempUri;
-                    Log.i(ProfileFragment.class.getSimpleName(),selectedImageUri.toString());
+                    applyPictureChange(selectedImageUri);
+                    break;
             }
         }
+    }
+
+    private void applyPictureChange(Uri pictureUri){
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference().
+                child("usersProfilePics").child(Constants.encodeEmail(mUserEmailString))
+                .child(pictureUri.getLastPathSegment());
+
+        mCompositeDisposable.add(LiveAccountServices.getInstance().changeProfilePhoto(
+                storageReference,pictureUri,mActivity,mUserEmailString,mUserPicture,
+                mSharedPreferences
+        ));
     }
 
     @Override
@@ -265,5 +283,17 @@ public class ProfileFragment extends BaseFragment {
                 }
                 break;
         }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mActivity = (BaseFragmentActivity) context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mActivity = null;
     }
 }
