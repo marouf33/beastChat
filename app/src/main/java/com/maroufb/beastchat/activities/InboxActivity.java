@@ -93,9 +93,9 @@ public class InboxActivity extends BaseFragmentActivity {
                 SharedPreferences sharedPreferences = getSharedPreferences(Constants.USER_INFO_PREFERENCE, Context.MODE_PRIVATE);
                 //      mProgressBar.setVisibility(View.VISIBLE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString(Constants.USER_EMAIL, null);
-                editor.putString(Constants.USER_NAME, null);
-                editor.putString(Constants.USER_PICTURE, null);
+                editor.putString(Constants.USER_EMAIL, null).apply();
+                editor.putString(Constants.USER_NAME, null).apply();
+                editor.putString(Constants.USER_PICTURE, null).apply();
                 FirebaseAuth.getInstance().signOut();
                 LoginManager.getInstance().logOut();
                 Auth.GoogleSignInApi.signOut(mGoogleApiClient);
