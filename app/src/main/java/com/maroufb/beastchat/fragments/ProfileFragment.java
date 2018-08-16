@@ -8,6 +8,7 @@ import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,7 @@ import com.roughike.bottombar.BottomBar;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -118,7 +120,10 @@ public class ProfileFragment extends BaseFragment {
     @OnClick(R.id.fragment_profile_cameraPicture)
     public void setCameraImage(){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        mTempUri = Uri.fromFile(getOutputFile());
+        mTempUri  = FileProvider.getUriForFile(
+                getActivity(),
+                "com.maroufb.beastchat.provider", //(use your app signature + ".provider" )
+                getOutputFile());
         intent.putExtra(MediaStore.EXTRA_OUTPUT,mTempUri);
         startActivityForResult(intent,REQUEST_CODE_CAMERA);
 
