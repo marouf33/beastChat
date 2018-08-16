@@ -20,16 +20,17 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.FriendsActivity;
+import com.maroufb.beastchat.activities.InboxActivity;
 
 public class friendRequestMessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
-        sendNotification(remoteMessage.getData().get("title"),remoteMessage.getData().get("body"));
+        sendNotification(remoteMessage.getData().get("title"),remoteMessage.getData().get("body"),remoteMessage.getData().get("type"));
     }
 
-    public void sendNotification(String title, String body){
-        Intent intent = new Intent(this, FriendsActivity.class);
+    public void sendNotification(String title, String body, String type){
+        Intent intent = new Intent(this,Integer.parseInt(type)  == 2 ? InboxActivity.class: FriendsActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK) ;
         PendingIntent pendingIntent = PendingIntent.getActivity(this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

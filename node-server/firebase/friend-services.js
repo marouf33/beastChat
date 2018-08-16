@@ -54,6 +54,27 @@ function sendMessage(socket,io){
     newFriendMessagesRef.set(message);
 
     chatRoomRef.set(chatRoom);
+
+
+    var tokenReference = db.ref('userToken');
+    var friendToken = tokenReference.child(encodeEmail(data.friendEmail));
+
+    friendToken.once('value',(snapshot)=>{
+      var message = {
+        to:snapshot.val().token,
+        data:{
+          title: 'Beast Chat',
+          body: `${data.senderName}: ${data.messageText}`,
+          type: 2
+        }
+      };
+    fcm.send(message)
+      .then((response)=>{
+        console.log('Message sent!');
+      }).catch((err)=>{
+        console.log(err);
+      });
+    });
     
   });
 }
@@ -126,7 +147,8 @@ function sendOrDeleteFriendRequest(socket,io){
                 to:snapshot.val().token,
                 data:{
                   title: 'Beast Chat',
-                  body: `Friend Request from ${userEmail}`
+                  body: `Friend Request from ${userEmail}`,
+                  type: 2
                 }
               };
             fcm.send(message)
