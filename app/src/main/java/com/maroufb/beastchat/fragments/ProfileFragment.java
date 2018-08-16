@@ -1,6 +1,7 @@
 package com.maroufb.beastchat.fragments;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -15,13 +16,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.maroufb.beastchat.R;
+import com.maroufb.beastchat.activities.BaseFragmentActivity;
+import com.maroufb.beastchat.activities.ProfileActivity;
 import com.maroufb.beastchat.services.LiveFriendServices;
 import com.maroufb.beastchat.utils.Constants;
+import com.maroufb.beastchat.utils.PermissionsManager;
 import com.roughike.bottombar.BottomBar;
 import com.squareup.picasso.Picasso;
 
@@ -74,6 +79,8 @@ public class ProfileFragment extends BaseFragment {
 
     private Uri mTempUri;
 
+    private PermissionsManager mPermissionsManager;
+
     public static ProfileFragment newInstance(){return new ProfileFragment();}
 
     @Nullable
@@ -107,26 +114,49 @@ public class ProfileFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         mLiveFriendServices = LiveFriendServices.getInstance();
         mUserEmailString = mSharedPreferences.getString(Constants.USER_EMAIL,"");
+        mPermissionsManager = new PermissionsManager(this);
     }
 
     @OnClick(R.id.fragment_profile_galleryPicture)
     public void setmGalleryImage(){
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/jpeg");
-        intent.putExtra(intent.EXTRA_LOCAL_ONLY,true);
-        startActivityForResult(Intent.createChooser(intent,"Choose Image With"),REQUEST_CODE_PICTURE);
+
+        if(!mPermissionsManager.checkPermissionForWriteExternalStorage()){
+            mPermissionsManager.requestPermissionForWriteExternalStorage(false);
+        }else if(!mPermissionsManager.checkPermissionForReadExternalStorage()){
+            mPermissionsManager.requestPermissionForReadExternalStorage(false);
+        }else {
+            dispatchGalleryIntent();
+        }
     }
 
     @OnClick(R.id.fragment_profile_cameraPicture)
     public void setCameraImage(){
+        if(!mPermissionsManager.checkPermissionForCamera()){
+            mPermissionsManager.requestPermissionForCamera();
+        }else if(!mPermissionsManager.checkPermissionForWriteExternalStorage()){
+          mPermissionsManager.requestPermissionForWriteExternalStorage(true);
+        }else if(!mPermissionsManager.checkPermissionForReadExternalStorage()){
+            mPermissionsManager.requestPermissionForReadExternalStorage(true);
+        }else {
+            dispatchTakePhotoIntent();
+        }
+    }
+
+    private void dispatchGalleryIntent(){
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/jpeg");
+        intent.putExtra(intent.EXTRA_LOCAL_ONLY, true);
+        startActivityForResult(Intent.createChooser(intent, "Choose Image With"), REQUEST_CODE_PICTURE);
+    }
+
+    private void dispatchTakePhotoIntent(){
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        mTempUri  = FileProvider.getUriForFile(
+        mTempUri = FileProvider.getUriForFile(
                 getActivity(),
                 "com.maroufb.beastchat.provider", //(use your app signature + ".provider" )
                 getOutputFile());
-        intent.putExtra(MediaStore.EXTRA_OUTPUT,mTempUri);
-        startActivityForResult(intent,REQUEST_CODE_CAMERA);
-
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mTempUri);
+        startActivityForResult(intent, REQUEST_CODE_CAMERA);
     }
 
     private static File getOutputFile(){
@@ -168,6 +198,72 @@ public class ProfileFragment extends BaseFragment {
 
         if(mUsersNewMessagesListener != null){
             mUsersNewMessagesReference.removeEventListener(mUsersNewMessagesListener);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case PermissionsManager.EXTERNAL_CAMERA_PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getActivity(), "Permission Granted!", Toast.LENGTH_SHORT).show();
+                    if(!mPermissionsManager.checkPermissionForWriteExternalStorage()){
+                        mPermissionsManager.requestPermissionForWriteExternalStorage(true);
+                    }else if(!mPermissionsManager.checkPermissionForReadExternalStorage()){
+                        mPermissionsManager.requestPermissionForReadExternalStorage(true);
+                    }else {
+                        dispatchTakePhotoIntent();
+                    }
+                } else {
+                    Toast.makeText(getActivity(), "Permission Denied!", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case PermissionsManager.EXTERNAL_STORAGE_WRITE_PERMISSION_REQUEST_CODE_FOR_CAMERA:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getActivity(), "Permission Granted!", Toast.LENGTH_SHORT).show();
+                    if(!mPermissionsManager.checkPermissionForReadExternalStorage()){
+                        mPermissionsManager.requestPermissionForReadExternalStorage(true);
+                    }else {
+                        dispatchTakePhotoIntent();
+                    }
+                } else {
+                    Toast.makeText(getActivity(), "Permission Denied!", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case PermissionsManager.EXTERNAL_STORAGE_READ_PERMISSION_REQUEST_CODE_FOR_CAMERA:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getActivity(), "Permission Granted!", Toast.LENGTH_SHORT).show();
+                        dispatchTakePhotoIntent();
+                } else {
+                    Toast.makeText(getActivity(), "Permission Denied!", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case PermissionsManager.EXTERNAL_STORAGE_WRITE_PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getActivity(), "Permission Granted!", Toast.LENGTH_SHORT).show();
+                    if(!mPermissionsManager.checkPermissionForReadExternalStorage()){
+                        mPermissionsManager.requestPermissionForReadExternalStorage(false);
+                    }else {
+                        dispatchGalleryIntent();
+                    }
+                } else {
+                    Toast.makeText(getActivity(), "Permission Denied!", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case PermissionsManager.EXTERNAL_STORAGE_READ_PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getActivity(), "Permission Granted!", Toast.LENGTH_SHORT).show();
+                    dispatchGalleryIntent();
+                } else {
+                    Toast.makeText(getActivity(), "Permission Denied!", Toast.LENGTH_SHORT).show();
+                }
+                break;
         }
     }
 }
