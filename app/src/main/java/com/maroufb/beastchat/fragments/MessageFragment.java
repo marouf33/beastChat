@@ -146,7 +146,9 @@ public class MessageFragment extends BaseFragment {
         mUserChatRoomsReference.addValueEventListener(mUserChatRoomLitener);
 
         mCompositeDisposable.add(createChatRoomSubscription());
-        mMessagesRecyclerView.scrollToPosition(mMessagesAdapter.getMessages().size() - 1);
+        //mMessagesRecyclerView.scrollToPosition(mMessagesAdapter.getMessages().size() -1 );
+        if(mMessagesAdapter.getMessages().size() > 0)
+             mMessagesRecyclerView.smoothScrollToPosition(mMessagesAdapter.getMessages().size() -1 );
         messageBoxListener();
 
         return rootView;
@@ -176,8 +178,9 @@ public class MessageFragment extends BaseFragment {
 
 
 
-            mMessagesRecyclerView.scrollToPosition(mMessagesAdapter.getMessages().size() - 1);
-
+         //   mMessagesRecyclerView.scrollToPosition(mMessagesAdapter.getMessages().size() - 1 );
+            if(mMessagesAdapter.getMessages().size() > 0)
+                 mMessagesRecyclerView.smoothScrollToPosition(mMessagesAdapter.getMessages().size() -1 );
         }
     }
 

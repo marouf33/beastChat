@@ -1,9 +1,11 @@
 package com.maroufb.beastchat.services;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
@@ -210,6 +212,11 @@ public class LiveFriendServices {
                     textView.setVisibility(View.GONE);
                     recyclerView.setVisibility(View.VISIBLE);
                     adapter.setMessages(messages);
+
+                    if(((LinearLayoutManager)recyclerView.getLayoutManager()).findLastVisibleItemPosition() == adapter.getItemCount()-2 ||
+                            (((LinearLayoutManager)recyclerView.getLayoutManager()).findLastVisibleItemPosition() == -1 && adapter.getItemCount()>0)){
+                        recyclerView.smoothScrollToPosition(adapter.getItemCount() -1);
+                    }
                 }
             }
 
