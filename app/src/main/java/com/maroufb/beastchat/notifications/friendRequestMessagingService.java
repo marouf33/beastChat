@@ -22,7 +22,11 @@ import com.maroufb.beastchat.R;
 import com.maroufb.beastchat.activities.FriendsActivity;
 import com.maroufb.beastchat.activities.InboxActivity;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class friendRequestMessagingService extends FirebaseMessagingService {
+
+    private final static AtomicInteger c = new AtomicInteger(0);
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
@@ -68,8 +72,9 @@ public class friendRequestMessagingService extends FirebaseMessagingService {
                         .setLights(Color.BLUE,1,1)
                         .setSound(defaultSoundUri)
                         .setContentIntent(pendingIntent)
-                        .setPriority(Notification.PRIORITY_HIGH);
+                        .setPriority(Notification.PRIORITY_HIGH)
+                        .setAutoCancel(true);
 
-        notificationManager.notify(0,notificationBuilder.build());
+        notificationManager.notify(c.incrementAndGet(),notificationBuilder.build());
     }
 }
